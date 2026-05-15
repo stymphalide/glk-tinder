@@ -37,14 +37,17 @@ def test_cli(tmp_path):
     output_file = tmp_path / "out.csv"
 
     # Simulate stdin for interactive prompts
-    user_input = "\n".join(
-        [
-            "6",  # number of groups
-            "0",  # balanced constraint
-            "0",  # first attribute
-            "n",  # stop adding constraints
-        ]
-    ) + "\n"
+    user_input = (
+        "\n".join(
+            [
+                "6",  # number of groups
+                "0",  # balanced constraint
+                "0",  # first attribute
+                "n",  # stop adding constraints
+            ]
+        )
+        + "\n"
+    )
 
     subprocess.run(
         [

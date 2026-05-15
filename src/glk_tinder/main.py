@@ -13,20 +13,21 @@ from glk_tinder.io import select_constraints, select_num_groups, Person
 def normalize_header(header: str) -> str:
     # Remove BOM
     header = header.replace("\ufeff", "")
-    
+
     # Trim whitespace
     header = header.strip()
-    
+
     # Lowercase
     header = header.lower()
-    
+
     # Replace spaces and hyphens with underscores
     header = re.sub(r"[\s\-]+", "_", header)
-    
+
     # Remove any remaining non-alphanumeric/underscore chars
     header = re.sub(r"[^a-z0-9_]", "", header)
 
     return header
+
 
 def read_people_from_csv(filename: str) -> List[Person]:
     people = []
@@ -56,7 +57,7 @@ def write_people_to_csv(filename: str, people: List[Person]):
 
         writer.writeheader()
 
-        for person in sorted(people,key=lambda x: x.attributes["group"]):
+        for person in sorted(people, key=lambda x: x.attributes["group"]):
             row = {"name": person.name, "group": person.attributes["group"]}
             writer.writerow(row)
 
@@ -67,8 +68,11 @@ def main(input_file, output_file):
     people = read_people_from_csv(input_file)
     num_groups = select_num_groups()
     constraints = select_constraints(people)
-    people, _x, _cp_solver, _constraints = solver(people, num_groups=num_groups,constraints=constraints)
+    people, _x, _cp_solver, _constraints = solver(
+        people, num_groups=num_groups, constraints=constraints
+    )
     write_people_to_csv(output_file, people)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process input files")
