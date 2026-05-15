@@ -3,18 +3,13 @@ import csv
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Any
+from glk_tinder.solver import solver, Balanced
 
 
 @dataclass
 class Person:
     name: str
     attributes: Dict[str, Any] = field(default_factory=dict)
-
-
-def solver(people: List[Person]) -> List[Person]:
-    for person in people:
-        person.attributes["group"] = 1
-    return people
 
 
 def read_people_from_csv(filename: str) -> List[Person]:
@@ -51,9 +46,13 @@ def write_people_to_csv(filename: str, people: List[Person]):
 
 def main(input_file, output_file):
     """Main entry point."""
+    print("test")
     # Load input file with people and data
     people = read_people_from_csv(input_file)
-    people = solver(people)
+    constraints = [
+        Balanced("GLK_Gruppe")
+    ]
+    people = solver(people, group_size=2,constraints=constraints)
     write_people_to_csv(output_file, people)
 
 

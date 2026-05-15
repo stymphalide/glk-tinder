@@ -25,28 +25,35 @@ class Constraint(ABC):
 
 
 # ---------------------------------------------------------
-# Your original AB balancing constraint (now plugin-based)
+# GENERIC BALANCED CONSTRAINT (replaces A/B version)
 # ---------------------------------------------------------
 
-class BalancedABGroups(Constraint):
+class Balanced(Constraint):
+    def __init__(self, attr_name: str):
+        self.attr_name = attr_name
+
     def apply(self, model, x, people, num_groups):
-        group_a = [
-            i for i, p in enumerate(people)
-            if p.attributes.get("group_source") == "A"
-        ]
 
-        group_b = [
-            i for i, p in enumerate(people)
-            if p.attributes.get("group_source") == "B"
-        ]
+        buckets = {}
 
-        # keep original assumption
-        assert len(group_a) == len(group_b) == num_groups, \
-            "A and B must match number of groups"
+        # group indices by attribute value
+        for i, p in enumerate(people):
+            key = p.attributes.get(self.attr_name)
+            if key is None:
+                continue
+            buckets.setdefault(key, []).append(i)
 
-        for g in range(num_groups):
-            model.Add(sum(x[i, g] for i in group_a) == 1)
-            model.Add(sum(x[i, g] for i in group_b) == 1)
+        # enforce equal distribution per group
+        for key, idx in buckets.items():
+
+            assert len(idx) % num_groups == 0, (
+                f"Cannot evenly distribute '{key}' across {num_groups} groups"
+            )
+
+            per_group = len(idx) // num_groups
+
+            for g in range(num_groups):
+                model.Add(sum(x[i, g] for i in idx) == per_group)
 
 
 # ---------------------------------------------------------
@@ -72,7 +79,7 @@ class AtLeastOne(Constraint):
 # SOLVER ENGINE (GENERIC)
 # =========================================================
 
-def solve_groups(
+def solver(
     people: List[Person],
     group_size: int,
     constraints: List[Constraint]
@@ -85,7 +92,6 @@ def solve_groups(
 
     # -----------------------------------------------------
     # Decision variables
-    # x[i, g] = person i assigned to group g
     # -----------------------------------------------------
     x = {}
     for i in range(n):
@@ -93,14 +99,12 @@ def solve_groups(
             x[i, g] = model.NewBoolVar(f"p{i}_g{g}")
 
     # -----------------------------------------------------
-    # BASE CONSTRAINTS (always required)
+    # BASE CONSTRAINTS
     # -----------------------------------------------------
 
-    # each person in exactly one group
     for i in range(n):
         model.Add(sum(x[i, g] for g in range(num_groups)) == 1)
 
-    # each group has fixed size
     for g in range(num_groups):
         model.Add(sum(x[i, g] for i in range(n)) == group_size)
 
@@ -138,24 +142,23 @@ def solve_groups(
 if __name__ == "__main__":
 
     people = [
-        Person("A1", {"group_source": "A"}),
-        Person("A2", {"group_source": "A"}),
-        Person("A3", {"group_source": "A"}),
-        Person("A4", {"group_source": "A"}),
+        Person("A1", {"GLK_Gruppe": "A"}),
+        Person("A2", {"GLK_Gruppe": "A"}),
+        Person("A3", {"GLK_Gruppe": "A"}),
+        Person("A4", {"GLK_Gruppe": "A"}),
 
-        Person("B1", {"group_source": "B"}),
-        Person("B2", {"group_source": "B"}),
-        Person("B3", {"group_source": "B"}),
-        Person("B4", {"group_source": "B"}),
+        Person("B1", {"GLK_Gruppe": "B"}),
+        Person("B2", {"GLK_Gruppe": "B"}),
+        Person("B3", {"GLK_Gruppe": "B"}),
+        Person("B4", {"GLK_Gruppe": "B"}),
     ]
 
     constraints = [
-        BalancedABGroups()
-        # You can add more here:
-        # AtLeastOne("explainer")
+        Balanced("GLK_Gruppe")
+        # AtLeastOne("explainer")  # optional
     ]
 
-    result = solve_groups(people, group_size=2, constraints=constraints)
+    result = solver(people, group_size=2, constraints=constraints)
 
     for p in result:
         print(p.name, p.attributes["group"])
