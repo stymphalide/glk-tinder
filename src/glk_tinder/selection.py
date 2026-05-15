@@ -1,4 +1,4 @@
-from glk_tinder.constraints import Balanced, AtLeastN, AtMostN, Constraint
+from glk_tinder.constraints import Balanced, AtLeastN, AtMostN, Constraint, GroupSize
 from dataclasses import dataclass, field
 from typing import Dict, List, Any
 
@@ -45,9 +45,39 @@ def select_constraints(people: List[Person]) -> List[Constraint]:
     return constraints
 
 
+def select_attribute(attributes: List[str]) -> str:
+    print("\nAvailable attributes:")
+    for i, attr in enumerate(attributes):
+        print(f"{i}: {attr}")
+    while True:
+        try:
+            attr_selection = int(input("Select an attribute: "))
+            if 0 <= attr_selection < len(attributes):
+                break
+            print("Invalid selection.")
+        except ValueError:
+            print(f"Please enter a number between 0 and {len(attributes) - 1}")
+    return attributes[attr_selection]
+
+
+def select_group_size() -> int:
+    while True:
+        try:
+            group_size = int(
+                input("\nWhat size should the group size be? ").strip().lower()
+            )
+
+            if 1 <= group_size:
+                break
+            print("Invalid selection.")
+        except ValueError:
+            print(f"Please enter a positive integer.")
+    return group_size
+
+
 def select_constraint(people: List[Person]) -> Constraint:
-    constraint_types = ["balanced", "at most n", "at least n"]
-    attributes = people[0].attributes.keys()
+    constraint_types = ["balanced", "at most n", "at least n", "group size"]
+    attributes = list(people[0].attributes.keys())
 
     # Step 1: Select constraint type
     print("Available constraint types:")
@@ -66,41 +96,44 @@ def select_constraint(people: List[Person]) -> Constraint:
     selected_constraint = constraint_types[selection]
     print(f"\nSelected: {selected_constraint}")
 
-    # Step 2: Select Attribute:
-    print("\nAvailable attributes:")
-    for i, attr in enumerate(attributes):
-        print(f"{i}: {attr}")
-    while True:
-        try:
-            attr_selection = int(input("Select an attribute: "))
-            if 0 <= attr_selection < len(attributes):
-                break
-            print("Invalid selection.")
-        except ValueError:
-            print(f"Please enter a number between 0 and {len(attributes) - 1}")
-    selected_attribute = attr_selection
     print(f"\nYou selected: ")
     print(f"Constraint Type: {selected_constraint}")
+
+    # Handle Group Size
+    if selected_constraint == "group size":
+        group_size = select_group_size()
+        return GroupSize(group_size)
+
+    # Attribute selection
+    selected_attribute = select_attribute(attributes)
     print(f"Attribute: {selected_attribute}")
 
     # Step 3: Different state depending on selection
     if selected_constraint == "balanced":
         return Balanced(selected_attribute)
 
+    print(selected_attribute)
     # Select a value
-    uniqe_values = set([p.attributes[selected_attribute] for p in people])
+    unique_values = ["ALL"] + list(
+        set([p.attributes[selected_attribute] for p in people])
+    )
     print("\nAvailable Values:")
-    for i, val in enumerate(uniqe_values):
-        print(f"{i}: {attr}")
+    for i, val in enumerate(unique_values):
+        print(f"{i}: {val}")
     while True:
         try:
             val_selection = int(input("Select a value: "))
-            if 0 <= val_selection < len(uniqe_values):
+            if 0 <= val_selection < len(unique_values):
                 break
             print("Invalid selection.")
         except ValueError:
-            print(f"Please enter a number between 0 and {len(uniqe_values) - 1}")
-    selected_value = unique_values[val_selection]
+            print(f"Please enter a number between 0 and {len(unique_values) - 1}")
+
+    if val_selection == 0:
+        selected_value = None
+    else:
+        selected_value = unique_values[val_selection]
+
     print(f"\nYou selected:")
     print(f"Constraint Type: {selected_constraint}")
     print(f"Attribute: {selected_attribute}")
@@ -120,7 +153,7 @@ def select_constraint(people: List[Person]) -> Constraint:
             except ValueError:
                 print(f"Please enter an integer larger than 0.")
         return AtMostN(selected_attribute, selected_value, n_selection)
-    elif selected_constraint == "at_least_n":
+    elif selected_constraint == "at least n":
         while True:
             try:
                 n_selection = int(

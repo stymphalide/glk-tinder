@@ -3,14 +3,14 @@
 import unittest
 from unittest.mock import patch
 
-from glk_tinder.io import (
+from glk_tinder.selection import (
     Person,
     select_num_groups,
     select_constraint,
     select_constraints,
 )
 
-from glk_tinder.constraints import Balanced
+from glk_tinder.constraints import Balanced, AtMostN, AtLeastN, GroupSize
 
 
 class TestSelectionFunctions(unittest.TestCase):
@@ -87,6 +87,74 @@ class TestSelectionFunctions(unittest.TestCase):
 
         self.assertEqual(len(result), 2)
         self.assertTrue(all(isinstance(c, Balanced) for c in result))
+
+    @patch(
+        "builtins.input",
+        side_effect=[
+            "1",  # select "AtMostN"
+            "0",  # select first attribute
+            "0",  # select first value
+            "5",  # Select n
+        ],
+    )
+    def test_select_constraint_at_most_n(self, mock_input):
+        result = select_constraint(self.people)
+
+        self.assertIsInstance(result, AtMostN)
+
+    @patch(
+        "builtins.input",
+        side_effect=[
+            "2",  # select "AtLeastN"
+            "0",  # select first attribute
+            "0",  # select ALL
+            "1",  # Select n
+        ],
+    )
+    def test_select_constraint_at_least_n(self, mock_input):
+        result = select_constraint(self.people)
+
+        self.assertIsInstance(result, AtLeastN)
+
+    @patch(
+        "builtins.input",
+        side_effect=[
+            "2",  # select "AtLeastN"
+            "0",  # select first attribute
+            "1",  # select F
+            "4",  # Select n
+        ],
+    )
+    def test_select_constraint_at_least_n_with_value(self, mock_input):
+        result = select_constraint(self.people)
+        self.assertIsInstance(result, AtLeastN)
+        assert result.__repr__().startswith("CONSTRAINT: gender has at least 4 of")
+
+    @patch(
+        "builtins.input",
+        side_effect=[
+            "2",  # select "AtLeastN"
+            "0",  # select first attribute
+            "0",  # select ALL
+            "4",  # Select n
+        ],
+    )
+    def test_select_constraint_at_least_n_with_all(self, mock_input):
+        result = select_constraint(self.people)
+        self.assertIsInstance(result, AtLeastN)
+        self.assertEqual(result.__repr__(), "CONSTRAINT: gender has at least 4")
+
+    @patch(
+        "builtins.input",
+        side_effect=[
+            "3",  # select "GroupSize"
+            "1",  # select group size 1
+        ],
+    )
+    def test_select_group_size(self, mock_input):
+        result = select_constraint(self.people)
+
+        self.assertIsInstance(result, GroupSize)
 
 
 if __name__ == "__main__":
