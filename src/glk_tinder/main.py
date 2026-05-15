@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Any, Iterator
 
 from glk_tinder.solver import solver, Constraint, Balanced
+from glk_tinder.io import select_constraints, select_num_groups
 
 
 @dataclass
@@ -66,20 +67,15 @@ def write_people_to_csv(filename: str, people: List[Person]):
             row = {"name": person.name, "group": person.attributes["group"]}
             writer.writerow(row)
 
-def get_constraints() -> List[Constraint]:
-    return [
-        Balanced("GLK_Gruppe")
-    ]
-
 
 def main(input_file, output_file):
     """Main entry point."""
     # Load input file with people and data
     people = read_people_from_csv(input_file)
-    constraints = get_constraints()
-    people = solver(people, group_size=2,constraints=constraints)
+    num_groups = select_num_groups()
+    constraints = select_constraints(people)
+    people = solver(people, num_groups=num_groups,constraints=constraints)
     write_people_to_csv(output_file, people)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process input files")
