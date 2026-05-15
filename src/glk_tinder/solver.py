@@ -2,13 +2,12 @@ from ortools.sat.python import cp_model
 from dataclasses import dataclass, field
 from typing import Dict, Any, List
 
-from constraints import Constraint, Balanced, AtMostN, AtLeastN
-from glk_tinder.constraints import GroupSize
-
+from glk_tinder.constraints import GroupSize, Constraint, Balanced, AtMostN, AtLeastN
 
 # =========================================================
 # DATA MODEL
 # =========================================================
+
 
 @dataclass
 class Person:
@@ -20,11 +19,8 @@ class Person:
 # SOLVER ENGINE (GENERIC)
 # =========================================================
 
-def solver(
-    people: List[Person],
-    num_groups: int,
-    constraints: List[Constraint]
-):
+
+def solver(people: List[Person], num_groups: int, constraints: List[Constraint]):
 
     model = cp_model.CpModel()
 
@@ -71,9 +67,7 @@ def explain_solution(people, x, solver, constraints, num_groups):
 
     for c in constraints:
         if hasattr(c, "explain"):
-            all_issues.extend(
-                c.explain(people, x, solver, num_groups)
-            )
+            all_issues.extend(c.explain(people, x, solver, num_groups))
 
     return all_issues
 
@@ -85,100 +79,42 @@ def explain_solution(people, x, solver, constraints, num_groups):
 if __name__ == "__main__":
 
     people = [
-        Person("Alice", {
-            "Ampel": "red",
-            "Gender": "F",
-            "GLK_Gruppe": "A",
-            "Explainer": True
-        }),
-
-        Person("Bob", {
-            "Ampel": "green",
-            "Gender": "M",
-            "GLK_Gruppe": "A"
-        }),
-
-        Person("Charlie", {
-            "Ampel": "yellow",
-            "Gender": "M",
-            "GLK_Gruppe": "A"
-        }),
-
-        Person("Diana", {
-            "Ampel": "red",
-            "Gender": "F",
-            "GLK_Gruppe": "A"
-        }),
-
-        Person("Eve", {
-            "Ampel": "green",
-            "Gender": "F",
-            "GLK_Gruppe": "B",
-            "Explainer": True
-        }),
-
-        Person("Frank", {
-            "Ampel": "green",
-            "Gender": "M",
-            "GLK_Gruppe": "B"
-        }),
-
-        Person("Grace", {
-            "Ampel": "yellow",
-            "Gender": "F",
-            "GLK_Gruppe": "B"
-        }),
-
-        Person("Henry", {
-            "Ampel": "red",
-            "Gender": "M",
-            "GLK_Gruppe": "B"
-        }),
-
-        Person("Ivy", {
-            "Ampel": "green",
-            "Gender": "F",
-            "GLK_Gruppe": "A"
-        }),
-
-        Person("Jack", {
-            "Ampel": "red",
-            "Gender": "M",
-            "GLK_Gruppe": "B"
-        }),
+        Person(
+            "Alice",
+            {"Ampel": "red", "Gender": "F", "GLK_Gruppe": "A", "Explainer": True},
+        ),
+        Person("Bob", {"Ampel": "green", "Gender": "M", "GLK_Gruppe": "A"}),
+        Person("Charlie", {"Ampel": "yellow", "Gender": "M", "GLK_Gruppe": "A"}),
+        Person("Diana", {"Ampel": "red", "Gender": "F", "GLK_Gruppe": "A"}),
+        Person(
+            "Eve",
+            {"Ampel": "green", "Gender": "F", "GLK_Gruppe": "B", "Explainer": True},
+        ),
+        Person("Frank", {"Ampel": "green", "Gender": "M", "GLK_Gruppe": "B"}),
+        Person("Grace", {"Ampel": "yellow", "Gender": "F", "GLK_Gruppe": "B"}),
+        Person("Henry", {"Ampel": "red", "Gender": "M", "GLK_Gruppe": "B"}),
+        Person("Ivy", {"Ampel": "green", "Gender": "F", "GLK_Gruppe": "A"}),
+        Person("Jack", {"Ampel": "red", "Gender": "M", "GLK_Gruppe": "B"}),
     ]
 
     constraints = [
-
         # balance original groups
         Balanced("GLK_Gruppe", weight=10),
-
         # balance genders
         Balanced("Gender", weight=500),
-
         # every group should ideally have one red
         AtLeastN("Ampel", "red", 1, weight=8),
-
         # avoid too many greens in one group
         AtMostN("Ampel", "green", 1, weight=3),
-
         # keep groups near size 3
         GroupSize(3, weight=10),
     ]
 
     result, x, cp_solver, constraints = solver(
-        people,
-        num_groups=3,
-        constraints=constraints
+        people, num_groups=3, constraints=constraints
     )
 
-    issues = explain_solution(
-        result,
-        x,
-        cp_solver,
-        constraints,
-        num_groups=3
-    )
+    issues = explain_solution(result, x, cp_solver, constraints, num_groups=3)
 
     print("\n--- ISSUES ---")
     for i in issues:

@@ -3,10 +3,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
+
 class Constraint(ABC):
     @abstractmethod
     def apply(self, model, x, people, num_groups):
         pass
+
     def explain(self, people, x, solver, num_groups):
         return []
 
@@ -72,8 +74,11 @@ class Balanced(Constraint):
 
         return issues
 
+
 class AtMostN(Constraint):
-    def __init__(self, attr_name: str, value: Any, max_count: int, weight: int | None = None):
+    def __init__(
+        self, attr_name: str, value: Any, max_count: int, weight: int | None = None
+    ):
         self.attr_name = attr_name
         self.value = value
         self.max_count = max_count
@@ -82,7 +87,8 @@ class AtMostN(Constraint):
     def apply(self, model, x, people, num_groups, objective_terms=None):
 
         idx = [
-            i for i, p in enumerate(people)
+            i
+            for i, p in enumerate(people)
             if p.attributes.get(self.attr_name) == self.value
         ]
 
@@ -103,7 +109,8 @@ class AtMostN(Constraint):
         issues = []
 
         idx = [
-            i for i, p in enumerate(people)
+            i
+            for i, p in enumerate(people)
             if p.attributes.get(self.attr_name) == self.value
         ]
 
@@ -118,8 +125,11 @@ class AtMostN(Constraint):
 
         return issues
 
+
 class AtLeastN(Constraint):
-    def __init__(self, attr_name: str, value: Any, min_count: int, weight: int | None = None):
+    def __init__(
+        self, attr_name: str, value: Any, min_count: int, weight: int | None = None
+    ):
         self.attr_name = attr_name
         self.value = value
         self.min_count = min_count
@@ -128,7 +138,8 @@ class AtLeastN(Constraint):
     def apply(self, model, x, people, num_groups, objective_terms=None):
 
         idx = [
-            i for i, p in enumerate(people)
+            i
+            for i, p in enumerate(people)
             if p.attributes.get(self.attr_name) == self.value
         ]
 
@@ -149,7 +160,8 @@ class AtLeastN(Constraint):
         issues = []
 
         idx = [
-            i for i, p in enumerate(people)
+            i
+            for i, p in enumerate(people)
             if p.attributes.get(self.attr_name) == self.value
         ]
 
@@ -163,6 +175,7 @@ class AtLeastN(Constraint):
                 )
 
         return issues
+
 
 class GroupSize(Constraint):
     def __init__(self, target_size: int, weight: int = 1):
@@ -193,8 +206,6 @@ class GroupSize(Constraint):
             size = sum(solver.Value(x[i, g]) for i in range(len(people)))
 
             if size != self.target_size:
-                issues.append(
-                    f"Group {g}: size={size}, target={self.target_size}"
-                )
+                issues.append(f"Group {g}: size={size}, target={self.target_size}")
 
         return issues

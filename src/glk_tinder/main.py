@@ -1,22 +1,40 @@
 import argparse
 import csv
+import re
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any
-from glk_tinder.solver import solver, Balanced
+from typing import Dict, List, Any, Iterator
 
 
-@dataclass
-class Person:
-    name: str
-    attributes: Dict[str, Any] = field(default_factory=dict)
+from glk_tinder.solver import solver
+from glk_tinder.io import select_constraints, select_num_groups, Person
+
+
+def normalize_header(header: str) -> str:
+    # Remove BOM
+    header = header.replace("\ufeff", "")
+
+    # Trim whitespace
+    header = header.strip()
+
+    # Lowercase
+    header = header.lower()
+
+    # Replace spaces and hyphens with underscores
+    header = re.sub(r"[\s\-]+", "_", header)
+
+    # Remove any remaining non-alphanumeric/underscore chars
+    header = re.sub(r"[^a-z0-9_]", "", header)
+
+    return header
 
 
 def read_people_from_csv(filename: str) -> List[Person]:
     people = []
 
-    with open(filename, mode="r", newline="") as file:
+    with open(filename, mode="r", newline="", encoding="utf-8-sig") as file:
         reader = csv.DictReader(file)
+        reader.fieldnames = [normalize_header(h) for h in reader.fieldnames]
 
         for row in reader:
             # Extract required field
@@ -34,25 +52,25 @@ def write_people_to_csv(filename: str, people: List[Person]):
     # Define CSV columns
     fieldnames = ["name"] + ["group"]
 
-    with open(filename, mode="w", newline="") as file:
+    with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
 
         writer.writeheader()
 
-        for person in people:
+        for person in sorted(people, key=lambda x: x.attributes["group"]):
             row = {"name": person.name, "group": person.attributes["group"]}
             writer.writerow(row)
 
 
 def main(input_file, output_file):
     """Main entry point."""
-    print("test")
     # Load input file with people and data
     people = read_people_from_csv(input_file)
-    constraints = [
-        Balanced("GLK_Gruppe")
-    ]
-    people = solver(people, group_size=2,constraints=constraints)
+    num_groups = select_num_groups()
+    constraints = select_constraints(people)
+    people, _x, _cp_solver, _constraints = solver(
+        people, num_groups=num_groups, constraints=constraints
+    )
     write_people_to_csv(output_file, people)
 
 
