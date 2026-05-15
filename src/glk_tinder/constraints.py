@@ -83,7 +83,11 @@ class Balanced(Constraint):
 
 class AtMostN(Constraint):
     def __init__(
-        self, attr_name: str, value: Any, max_count: int, weight: int | None = None
+        self,
+        attr_name: str,
+        max_count: int,
+        value: Any = None,
+        weight: int | None = None,
     ):
         self.attr_name = attr_name
         self.value = value
@@ -91,25 +95,49 @@ class AtMostN(Constraint):
         self.weight = weight
 
     def apply(self, model, x, people, num_groups, objective_terms=None):
+        if self.value is not None:
+            buckets = {
+                self.value: [
+                    i
+                    for i, p in enumerate(people)
+                    if p.attributes.get(self.attr_name) == self.value
+                ]
+            }
 
-        idx = [
-            i
-            for i, p in enumerate(people)
-            if p.attributes.get(self.attr_name) == self.value
-        ]
+        else:
+            buckets = {}
 
-        for g in range(num_groups):
-            expr = sum(x[i, g] for i in idx)
+            for i, p in enumerate(people):
+                key = p.attributes.get(self.attr_name)
 
-            if self.weight is None:
-                model.Add(expr <= self.max_count)
-            else:
-                excess = model.NewIntVar(0, len(idx), f"excess_{self.value}_{g}")
+                if key is None:
+                    continue
 
-                model.Add(excess >= expr - self.max_count)
-                model.Add(excess >= 0)
+                buckets.setdefault(key, []).append(i)
 
-                objective_terms.append(self.weight * excess)
+        # -----------------------------------------
+        # Apply constraints
+        # -----------------------------------------
+        for key, idx in buckets.items():
+
+            for g in range(num_groups):
+
+                expr = sum(x[i, g] for i in idx)
+
+                if self.weight is None:
+                    model.Add(expr <= self.max_count)
+
+                else:
+                    excess = model.NewIntVar(
+                        0,
+                        len(idx),
+                        f"excess_{key}_{g}"
+                    )
+
+                    model.Add(excess >= expr - self.max_count)
+                    model.Add(excess >= 0)
+
+                    objective_terms.append(self.weight * excess)
 
     def explain(self, people, x, solver, num_groups):
         issues = []
