@@ -7,7 +7,7 @@ from typing import Dict, List, Any, Iterator
 
 
 from glk_tinder.solver import solver
-from glk_tinder.io import select_constraints, select_num_groups, Person
+from glk_tinder.selection import select_constraints, select_num_groups, Person
 
 
 def normalize_header(header: str) -> str:

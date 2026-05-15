@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch
 
-from glk_tinder.io import (
+from glk_tinder.selection import (
     Person,
     select_num_groups,
     select_constraint,
@@ -59,7 +59,7 @@ class TestSelectionFunctions(unittest.TestCase):
         "builtins.input",
         side_effect=[
             "invalid",  # invalid constraint type
-            "0",  # valid constraint type
+            "0",    # valid constraint type
             "invalid",  # invalid attribute
             "0",  # valid attribute
         ],
@@ -107,7 +107,7 @@ class TestSelectionFunctions(unittest.TestCase):
         side_effect=[
             "2",  # select "AtLeastN"
             "0",  # select first attribute
-            "0",  # select first value
+            "0",  # select ALL
             "1",  # Select n
         ],
     )
@@ -115,6 +115,36 @@ class TestSelectionFunctions(unittest.TestCase):
         result = select_constraint(self.people)
 
         self.assertIsInstance(result, AtLeastN)
+
+    @patch(
+        "builtins.input",
+        side_effect=[
+            "2",  # select "AtLeastN"
+            "0",  # select first attribute
+            "1",  # select F
+            "4",  # Select n
+        ],
+    )
+    def test_select_constraint_at_least_n_with_value(self, mock_input):
+        result = select_constraint(self.people)
+        self.assertIsInstance(result, AtLeastN)
+        assert result.__repr__().startswith('CONSTRAINT: gender has at least 4 of')
+    
+    @patch(
+        "builtins.input",
+        side_effect=[
+            "2",  # select "AtLeastN"
+            "0",  # select first attribute
+            "0",  # select ALL
+            "4",  # Select n
+        ],
+    )
+    def test_select_constraint_at_least_n_with_all(self, mock_input):
+        result = select_constraint(self.people)
+        self.assertIsInstance(result, AtLeastN)
+        self.assertEqual(result.__repr__(), 'CONSTRAINT: gender has at least 4')
+
+
 
     @patch(
         "builtins.input",
