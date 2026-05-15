@@ -59,7 +59,7 @@ class TestSelectionFunctions(unittest.TestCase):
         "builtins.input",
         side_effect=[
             "invalid",  # invalid constraint type
-            "0",    # valid constraint type
+            "0",  # valid constraint type
             "invalid",  # invalid attribute
             "0",  # valid attribute
         ],
@@ -128,8 +128,8 @@ class TestSelectionFunctions(unittest.TestCase):
     def test_select_constraint_at_least_n_with_value(self, mock_input):
         result = select_constraint(self.people)
         self.assertIsInstance(result, AtLeastN)
-        assert result.__repr__().startswith('CONSTRAINT: gender has at least 4 of')
-    
+        assert result.__repr__().startswith("CONSTRAINT: gender has at least 4 of")
+
     @patch(
         "builtins.input",
         side_effect=[
@@ -142,9 +142,7 @@ class TestSelectionFunctions(unittest.TestCase):
     def test_select_constraint_at_least_n_with_all(self, mock_input):
         result = select_constraint(self.people)
         self.assertIsInstance(result, AtLeastN)
-        self.assertEqual(result.__repr__(), 'CONSTRAINT: gender has at least 4')
-
-
+        self.assertEqual(result.__repr__(), "CONSTRAINT: gender has at least 4")
 
     @patch(
         "builtins.input",

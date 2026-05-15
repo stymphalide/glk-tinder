@@ -11,9 +11,10 @@ class Constraint(ABC):
 
     def explain(self, people, x, solver, num_groups):
         return []
-    
+
     def __repr__(self) -> str:
         return super().__repr__()
+
 
 class Balanced(Constraint):
     def __init__(self, attr_name: str, weight: int | None = None):
@@ -49,6 +50,7 @@ class Balanced(Constraint):
                     model.Add(dev >= base - expr)
 
                     objective_terms.append(self.weight * dev)
+
     def __repr__(self) -> str:
         return f"CONSTRAINT: Balance {self.attr_name}"
 
@@ -128,10 +130,13 @@ class AtMostN(Constraint):
                 )
 
         return issues
+
     def __repr__(self):
         if self.value is None:
             return f"CONSTRAINT: {self.attr_name} has at most {self.max_count}"
-        return f"CONSTRAINT: {self.attr_name} has at most {self.max_count} of {self.value}"
+        return (
+            f"CONSTRAINT: {self.attr_name} has at most {self.max_count} of {self.value}"
+        )
 
 
 class AtLeastN(Constraint):
@@ -183,10 +188,12 @@ class AtLeastN(Constraint):
                 )
 
         return issues
+
     def __repr__(self):
         if self.value is None:
             return f"CONSTRAINT: {self.attr_name} has at least {self.min_count}"
         return f"CONSTRAINT: {self.attr_name} has at least {self.min_count} of {self.value}"
+
 
 class GroupSize(Constraint):
     def __init__(self, target_size: int, weight: int = 1):
@@ -220,5 +227,6 @@ class GroupSize(Constraint):
                 issues.append(f"Group {g}: size={size}, target={self.target_size}")
 
         return issues
+
     def __repr__(self):
         return f"CONSTRAINT: Group Size of {self.target_size}"

@@ -114,7 +114,9 @@ def select_constraint(people: List[Person]) -> Constraint:
 
     print(selected_attribute)
     # Select a value
-    unique_values = ['ALL'] + list(set([p.attributes[selected_attribute] for p in people]))
+    unique_values = ["ALL"] + list(
+        set([p.attributes[selected_attribute] for p in people])
+    )
     print("\nAvailable Values:")
     for i, val in enumerate(unique_values):
         print(f"{i}: {val}")
@@ -126,12 +128,12 @@ def select_constraint(people: List[Person]) -> Constraint:
             print("Invalid selection.")
         except ValueError:
             print(f"Please enter a number between 0 and {len(unique_values) - 1}")
-    
+
     if val_selection == 0:
         selected_value = None
     else:
         selected_value = unique_values[val_selection]
-    
+
     print(f"\nYou selected:")
     print(f"Constraint Type: {selected_constraint}")
     print(f"Attribute: {selected_attribute}")
