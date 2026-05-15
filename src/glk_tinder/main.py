@@ -51,7 +51,7 @@ def write_people_to_csv(filename: str, people: List[Person]):
     # Define CSV columns
     fieldnames = ["name"] + ["group"]
 
-    with open(filename, mode="w", newline="", encoding="utf-8-sig") as file:
+    with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
 
         writer.writeheader()
@@ -67,7 +67,7 @@ def main(input_file, output_file):
     people = read_people_from_csv(input_file)
     num_groups = select_num_groups()
     constraints = select_constraints(people)
-    people = solver(people, num_groups=num_groups,constraints=constraints)
+    people, _x, _cp_solver, _constraints = solver(people, num_groups=num_groups,constraints=constraints)
     write_people_to_csv(output_file, people)
 
 if __name__ == "__main__":

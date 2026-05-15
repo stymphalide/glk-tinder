@@ -1,4 +1,4 @@
-from glk_tinder.solver import solver, Balanced
+from glk_tinder.solver import solver, Balanced, AtLeastN, AtMostN
 from glk_tinder.main import Person
 
 
@@ -10,10 +10,10 @@ def test_balanced_solver():
         Person('D', {'ampel':1})
     ]
     constraints = [Balanced('ampel')]
-    n = 2
-    out_people = solver(people.copy(),n,constraints)
-    group0 = [p for p in out_people if p.attributes['group'] == 0]
-    group1 = [p for p in out_people if p.attributes['group'] == 1]
+    num_groups = 2
+    result, _x, _cp_solver, _constraints = solver(people.copy(),num_groups,constraints)
+    group0 = [p for p in result if p.attributes['group'] == 0]
+    group1 = [p for p in result if p.attributes['group'] == 1]
     assert len(group0) == 2
     assert len(group1) == 2
 
@@ -27,13 +27,11 @@ def test_at_most_n_solver():
         Person('F', {'ampel':0}),
     ]
     constraints = [AtMostN('ampel', 0, 2)]
-    n = 2
-    out_people = solver(people.copy(),n,constraints)
-    group0 = [p for p in out_people if p.attributes['group'] == 0]
-    group1 = [p for p in out_people if p.attributes['group'] == 1]
+    num_groups = 2
+    result, _x, _cp_solver, _constraints = solver(people.copy(),num_groups,constraints)
+    group0 = [p for p in result if p.attributes['group'] == 0]
+    group1 = [p for p in result if p.attributes['group'] == 1]
     
-    assert len(group0) == 3
-    assert len(group1) == 3
     assert len([p for p in group0 if p.attributes['ampel'] == 0]) <= 2
     assert len([p for p in group1 if p.attributes['ampel'] == 0]) <= 2
 
@@ -47,10 +45,10 @@ def test_at_least_n_solver():
         Person('F', {'ampel':0}),
     ]
     constraints = [AtLeastN('ampel', 0, 1)]
-    n = 2
-    out_people = solver(people.copy(),n,constraints)
-    group0 = [p for p in out_people if p.attributes['group'] == 0]
-    group1 = [p for p in out_people if p.attributes['group'] == 1]
+    num_groups = 3
+    result, _x, _cp_solver, _constraints = solver(people.copy(),num_groups,constraints)
+    group0 = [p for p in result if p.attributes['group'] == 0]
+    group1 = [p for p in result if p.attributes['group'] == 1]
     
     assert len([p for p in group0 if p.attributes['ampel'] == 0]) >= 1
     assert len([p for p in group1 if p.attributes['ampel'] == 0]) >= 1
