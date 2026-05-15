@@ -1,7 +1,11 @@
-from glk_tinder.constraints import Balanced, AtLeastN, AtMostN
-from glk_tinder.main import Person
+from glk_tinder.constraints import Balanced, AtLeastN, AtMostN, Constraint
+from dataclasses import dataclass, field
+from typing import Dict, List, Any
 
-from typing import List
+@dataclass
+class Person:
+    name: str
+    attributes: Dict[str, Any] = field(default_factory=dict)
 
 
 def select_num_groups() -> int:
@@ -17,7 +21,7 @@ def select_num_groups() -> int:
     return num_groups
 
 
-def select_constraints(people: List[People]) -> List[Constraint]:
+def select_constraints(people: List[Person]) -> List[Constraint]:
     constraints = []
     while True:
         constraint = select_constraint(people)
@@ -27,7 +31,7 @@ def select_constraints(people: List[People]) -> List[Constraint]:
         for i, item in enumerate(constraints):
             print(
                 f"{i}: "
-                f"{item['constraint_type']} -> {item['attribute']}"
+                f"{item}"
             )
 
         again = input("\nAdd another constraint? (y/n): ").strip().lower()
@@ -39,12 +43,12 @@ def select_constraints(people: List[People]) -> List[Constraint]:
     for i, item in enumerate(constraints):
         print(
             f"{i}: "
-            f"{item['constraint_type']} -> {item['attribute']}"
+            f"{item}"
         )
     return constraints
 
 
-def select_constraint(people : List[People]) -> Constraint:
+def select_constraint(people : List[Person]) -> Constraint:
     constraint_types = ['balanced', 'at most n', 'at least n']
     attributes = people[0].attributes.keys()
 
@@ -77,7 +81,7 @@ def select_constraint(people : List[People]) -> Constraint:
             print("Invalid selection.")
         except ValueError:
             print(f"Please enter a number between 0 and {len(attributes) - 1}")
-    selected_attribute = attributes[attr_selection]
+    selected_attribute = attr_selection
     print(f"\nYou selected: ")
     print(f"Constraint Type: {selected_constraint}")
     print(f"Attribute: {selected_attribute}")

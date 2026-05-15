@@ -2,8 +2,7 @@ from ortools.sat.python import cp_model
 from dataclasses import dataclass, field
 from typing import Dict, Any, List
 
-from constraints import Constraint, Balanced, AtMostN, AtLeastN
-from glk_tinder.constraints import GroupSize
+from glk_tinder.constraints import GroupSize, Constraint, Balanced, AtMostN, AtLeastN
 
 
 # =========================================================

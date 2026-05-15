@@ -5,16 +5,9 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Iterator
 
-from glk_tinder.solver import solver, Constraint, Balanced
-from glk_tinder.io import select_constraints, select_num_groups
 
-
-@dataclass
-class Person:
-    name: str
-    attributes: Dict[str, Any] = field(default_factory=dict)
-
-
+from glk_tinder.solver import solver
+from glk_tinder.io import select_constraints, select_num_groups, Person
 
 
 def normalize_header(header: str) -> str:
