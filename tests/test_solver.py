@@ -28,9 +28,9 @@ def test_solver_diagnostics():
         # balance genders
         Balanced("Gender", weight=500),
         # every group should ideally have one red
-        AtLeastN("Ampel", "red", 1, weight=8),
+        AtLeastN("Ampel", 1, "red", weight=8),
         # avoid too many greens in one group
-        AtMostN("Ampel", "green", 1, weight=3),
+        AtMostN("Ampel", 1, "green", weight=3),
         # keep groups near size 3
         GroupSize(3, weight=10),
     ]
@@ -71,7 +71,7 @@ def test_at_most_n_solver():
         Person("E", {"ampel": 1}),
         Person("F", {"ampel": 0}),
     ]
-    constraints = [AtMostN("ampel", 0, 2)]
+    constraints = [AtMostN("ampel", 2,  value=0)]
     num_groups = 2
     result, _x, _cp_solver, _constraints = solver(
         people.copy(), num_groups, constraints
@@ -92,7 +92,7 @@ def test_at_least_n_solver():
         Person("E", {"ampel": 1}),
         Person("F", {"ampel": 0}),
     ]
-    constraints = [AtLeastN("ampel", 0, 1)]
+    constraints = [AtLeastN("ampel", 1, value=0)]
     num_groups = 3
     result, _x, _cp_solver, _constraints = solver(
         people.copy(), num_groups, constraints

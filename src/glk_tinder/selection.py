@@ -152,7 +152,7 @@ def select_constraint(people: List[Person]) -> Constraint:
                 print("Invalid selection.")
             except ValueError:
                 print(f"Please enter an integer larger than 0.")
-        return AtMostN(selected_attribute, selected_value, n_selection)
+        return AtMostN(selected_attribute, n_selection, selected_value)
     elif selected_constraint == "at least n":
         while True:
             try:
@@ -167,4 +167,4 @@ def select_constraint(people: List[Person]) -> Constraint:
             except ValueError:
                 print(f"Please enter an integer larger than 0.")
 
-        return AtLeastN(selected_attribute, selected_value, n_selection)
+        return AtLeastN(selected_attribute, n_selection, selected_value)

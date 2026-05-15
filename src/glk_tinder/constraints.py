@@ -95,7 +95,9 @@ class AtMostN(Constraint):
         self.weight = weight
 
     def apply(self, model, x, people, num_groups, objective_terms=None):
+        print(self.value)
         if self.value is not None:
+            print("hello")
             buckets = {
                 self.value: [
                     i
@@ -169,7 +171,7 @@ class AtMostN(Constraint):
 
 class AtLeastN(Constraint):
     def __init__(
-        self, attr_name: str, value: Any, min_count: int, weight: int | None = None
+        self, attr_name: str, min_count: int, value: Any = None, weight: int | None = None
     ):
         self.attr_name = attr_name
         self.value = value
