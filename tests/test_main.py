@@ -7,7 +7,7 @@ from pathlib import Path
 def test_main(tmp_path):
     input_file = Path("tests/data/input_file1.csv")
     output_file = tmp_path / "out.csv"
-    
+
     main(input_file, output_file)
 
     actual = output_file.read_text()
