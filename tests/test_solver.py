@@ -1,5 +1,47 @@
-from glk_tinder.solver import solver, Balanced, AtLeastN, AtMostN
+from glk_tinder.solver import *
 from glk_tinder.main import Person
+
+
+def test_solver_diagnostics():
+    people = [
+        Person(
+            "Alice",
+            {"Ampel": "red", "Gender": "F", "GLK_Gruppe": "A", "Explainer": True},
+        ),
+        Person("Bob", {"Ampel": "green", "Gender": "M", "GLK_Gruppe": "A"}),
+        Person("Charlie", {"Ampel": "yellow", "Gender": "M", "GLK_Gruppe": "A"}),
+        Person("Diana", {"Ampel": "red", "Gender": "F", "GLK_Gruppe": "A"}),
+        Person(
+            "Eve",
+            {"Ampel": "green", "Gender": "F", "GLK_Gruppe": "B", "Explainer": True},
+        ),
+        Person("Frank", {"Ampel": "green", "Gender": "M", "GLK_Gruppe": "B"}),
+        Person("Grace", {"Ampel": "yellow", "Gender": "F", "GLK_Gruppe": "B"}),
+        Person("Henry", {"Ampel": "red", "Gender": "M", "GLK_Gruppe": "B"}),
+        Person("Ivy", {"Ampel": "green", "Gender": "F", "GLK_Gruppe": "A"}),
+        Person("Jack", {"Ampel": "red", "Gender": "M", "GLK_Gruppe": "B"}),
+    ]
+
+    constraints = [
+        # balance original groups
+        Balanced("GLK_Gruppe", weight=10),
+        # balance genders
+        Balanced("Gender", weight=500),
+        # every group should ideally have one red
+        AtLeastN("Ampel", "red", 1, weight=8),
+        # avoid too many greens in one group
+        AtMostN("Ampel", "green", 1, weight=3),
+        # keep groups near size 3
+        GroupSize(3, weight=10),
+    ]
+
+    result, x, cp_solver, constraints = solver(
+        people, num_groups=3, constraints=constraints
+    )
+
+    issues = explain_solution(result, x, cp_solver, constraints, num_groups=3)
+
+    assert len(issues) == 9
 
 
 def test_balanced_solver():
