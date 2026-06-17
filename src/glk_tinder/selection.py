@@ -74,16 +74,44 @@ def select_group_size() -> int:
             print(f"Please enter a positive integer.")
     return group_size
 
+def select_priority() -> int:
+    priorities_to_weight = {
+        "low": 1,
+        "medium": 10,
+        "high": 100
+    }
+    priorities = list(priorities_to_weight.keys())
+
+    # Select Priority
+    print(f"\nSelect Priority (default=medium)")
+    for i,p in enumerate(priorities):
+        print(f"{i}: {p} ")
+    while True:
+        try:
+            priority_idx = input("Select the priority (enter for default): ")
+            if priority_idx == "":
+                priority = "medium"
+                break
+            elif 0<= int(priority_idx) < len(priorities_to_weight):
+                priority = priorities[int(priority_idx)]
+                break
+            print("Invalid selection.")
+        except ValueError:
+            print(f"Please enter a number between 0 and {len(priorities_to_weight) - 1}")
+    
+    print(f"\nSelected priority: {priority}")
+    return priorities_to_weight[priority]
+    
 
 def select_constraint(people: List[Person]) -> Constraint:
     constraint_types = ["balanced", "at most n", "at least n", "group size"]
+
     attributes = list(people[0].attributes.keys())
 
     # Step 1: Select constraint type
     print("Available constraint types:")
     for i, constraint in enumerate(constraint_types):
         print(f"{i}: {constraint}")
-
     while True:
         try:
             selection = int(input("Select a constraint type: "))
@@ -95,14 +123,18 @@ def select_constraint(people: List[Person]) -> Constraint:
 
     selected_constraint = constraint_types[selection]
     print(f"\nSelected: {selected_constraint}")
+    
 
+    
     print(f"\nYou selected: ")
     print(f"Constraint Type: {selected_constraint}")
+
+    priority_weight = select_priority()
 
     # Handle Group Size
     if selected_constraint == "group size":
         group_size = select_group_size()
-        return GroupSize(group_size)
+        return GroupSize(group_size, weight=priority_weight)
 
     # Attribute selection
     selected_attribute = select_attribute(attributes)
@@ -110,7 +142,7 @@ def select_constraint(people: List[Person]) -> Constraint:
 
     # Step 3: Different state depending on selection
     if selected_constraint == "balanced":
-        return Balanced(selected_attribute)
+        return Balanced(selected_attribute, weight=priority_weight)
 
     print(selected_attribute)
     # Select a value
@@ -137,14 +169,14 @@ def select_constraint(people: List[Person]) -> Constraint:
     print(f"\nYou selected:")
     print(f"Constraint Type: {selected_constraint}")
     print(f"Attribute: {selected_attribute}")
-    print(f"Value: {selected_value}")
+    print(f"Value: {"ALL" if selected_value is None else selected_value}")
 
     if selected_constraint == "at most n":
         while True:
             try:
                 n_selection = int(
                     input(
-                        f"\n Give an upper bound that this {selected_value} should not exceed: "
+                        f"\n Give an upper bound that {"ALL" if selected_value is None else selected_value} should not exceed: "
                     )
                 )
                 if 0 <= n_selection:
@@ -152,13 +184,13 @@ def select_constraint(people: List[Person]) -> Constraint:
                 print("Invalid selection.")
             except ValueError:
                 print(f"Please enter an integer larger than 0.")
-        return AtMostN(selected_attribute, n_selection, selected_value)
+        return AtMostN(selected_attribute, n_selection, selected_value, weight=priority_weight)
     elif selected_constraint == "at least n":
         while True:
             try:
                 n_selection = int(
                     input(
-                        f"\n Give an upper bound that this {selected_value} should not exceed: "
+                        f"\n Give a lower bound that {"ALL" if selected_value is None else selected_value} should be under: "
                     )
                 )
                 if 0 <= n_selection:
@@ -167,4 +199,4 @@ def select_constraint(people: List[Person]) -> Constraint:
             except ValueError:
                 print(f"Please enter an integer larger than 0.")
 
-        return AtLeastN(selected_attribute, n_selection, selected_value)
+        return AtLeastN(selected_attribute, n_selection, selected_value, weight=priority_weight)
