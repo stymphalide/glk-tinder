@@ -14,7 +14,6 @@ from glk_tinder.selection import (
 from glk_tinder.constraints import Balanced, AtMostN, AtLeastN, GroupSize
 
 class TestSelectionFunctions(unittest.TestCase):
-
     def setUp(self):
         self.people = [
             Person(
@@ -31,6 +30,22 @@ class TestSelectionFunctions(unittest.TestCase):
                     "name":"Bob",
                     "gender": "M",
                     "department": "Design",
+                },
+            ),
+            Person(
+                id=3,
+                attributes={
+                    "name":"Clara",
+                    "gender": "F",
+                    "department": "Design",
+                },
+            ),
+            Person(
+                id=4,
+                attributes={
+                    "name":"Daniel",
+                    "gender": "M",
+                    "department": "Engineering",
                 },
             ),
         ]
