@@ -163,10 +163,8 @@ class AtMostN(Constraint):
 
     def __repr__(self):
         if self.value is None:
-            return f"CONSTRAINT: {self.attr_name} has at most {self.max_count}"
-        return (
-            f"CONSTRAINT: {self.attr_name} has at most {self.max_count} of {self.value} with weight {self.weight}"
-        )
+            return f"CONSTRAINT: {self.attr_name} has at most {self.max_count} with weight {self.weight}"
+        return f"CONSTRAINT: {self.attr_name} has at most {self.max_count} of {self.value} with weight {self.weight}"
 
 
 class AtLeastN(Constraint):

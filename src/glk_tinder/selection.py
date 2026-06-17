@@ -103,8 +103,6 @@ def select_priority() -> int:
     return priorities_to_weight[priority]
     
 
-
-
 def select_constraint(people: List[Person]) -> Constraint:
     constraint_types = ["balanced", "at most n", "at least n", "group size"]
 
@@ -171,14 +169,14 @@ def select_constraint(people: List[Person]) -> Constraint:
     print(f"\nYou selected:")
     print(f"Constraint Type: {selected_constraint}")
     print(f"Attribute: {selected_attribute}")
-    print(f"Value: {selected_value}")
+    print(f"Value: {"ALL" if selected_value is None else selected_value}")
 
     if selected_constraint == "at most n":
         while True:
             try:
                 n_selection = int(
                     input(
-                        f"\n Give an upper bound that this {selected_value} should not exceed: "
+                        f"\n Give an upper bound that {"ALL" if selected_value is None else selected_value} should not exceed: "
                     )
                 )
                 if 0 <= n_selection:
@@ -192,7 +190,7 @@ def select_constraint(people: List[Person]) -> Constraint:
             try:
                 n_selection = int(
                     input(
-                        f"\n Give an upper bound that this {selected_value} should not exceed: "
+                        f"\n Give a lower bound that {"ALL" if selected_value is None else selected_value} should be under: "
                     )
                 )
                 if 0 <= n_selection:
