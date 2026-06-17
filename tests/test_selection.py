@@ -13,26 +13,28 @@ from glk_tinder.selection import (
 
 from glk_tinder.constraints import Balanced, AtMostN, AtLeastN, GroupSize
 
-
 class TestSelectionFunctions(unittest.TestCase):
 
     def setUp(self):
         self.people = [
             Person(
-                name="Alice",
+                id=0,
                 attributes={
+                    "name":"Alice",
                     "gender": "F",
                     "department": "Engineering",
                 },
             ),
             Person(
-                name="Bob",
+                id=1,
                 attributes={
+                    "name":"Bob",
                     "gender": "M",
                     "department": "Design",
                 },
             ),
         ]
+        self.num_groups = 2
 
     @patch("builtins.input", side_effect=["3"])
     def test_select_num_groups_valid(self, mock_input):
@@ -63,7 +65,7 @@ class TestSelectionFunctions(unittest.TestCase):
         ],
     )
     def test_select_constraint_balanced(self, mock_input):
-        result = select_constraint(self.people)
+        result = select_constraint(self.people,self.num_groups)
 
         self.assertIsInstance(result, Balanced)
 
@@ -78,7 +80,7 @@ class TestSelectionFunctions(unittest.TestCase):
         ],
     )
     def test_select_constraint_retries_on_invalid_input(self, mock_input):
-        result = select_constraint(self.people)
+        result = select_constraint(self.people, self.num_groups)
 
         self.assertIsInstance(result, Balanced)
 
@@ -98,7 +100,7 @@ class TestSelectionFunctions(unittest.TestCase):
         ],
     )
     def test_select_constraints_multiple(self, mock_input):
-        result = select_constraints(self.people)
+        result = select_constraints(self.people, self.num_groups)
 
         self.assertEqual(len(result), 2)
         self.assertTrue(all(isinstance(c, Balanced) for c in result))
@@ -114,7 +116,7 @@ class TestSelectionFunctions(unittest.TestCase):
         ],
     )
     def test_select_constraint_at_most_n(self, mock_input):
-        result = select_constraint(self.people)
+        result = select_constraint(self.people, self.num_groups)
 
         self.assertIsInstance(result, AtMostN)
 
@@ -129,7 +131,7 @@ class TestSelectionFunctions(unittest.TestCase):
         ],
     )
     def test_select_constraint_at_least_n(self, mock_input):
-        result = select_constraint(self.people)
+        result = select_constraint(self.people, self.num_groups)
 
         self.assertIsInstance(result, AtLeastN)
 
@@ -138,13 +140,13 @@ class TestSelectionFunctions(unittest.TestCase):
         side_effect=[
             "2",  # select "AtLeastN"
             "0",  # low
-            "0",  # select first attribute
+            "1",  # select gender attribute
             "1",  # select F
             "4",  # Select n
         ],
     )
     def test_select_constraint_at_least_n_with_value(self, mock_input):
-        result = select_constraint(self.people)
+        result = select_constraint(self.people, self.num_groups)
         self.assertIsInstance(result, AtLeastN)
         assert result.__repr__().startswith("CONSTRAINT: gender has at least 4 of")
 
@@ -153,13 +155,13 @@ class TestSelectionFunctions(unittest.TestCase):
         side_effect=[
             "2",  # select "AtLeastN"
             "0",  # low
-            "0",  # select first attribute
+            "1",  # select first attribute
             "0",  # select ALL
             "4",  # Select n
         ],
     )
     def test_select_constraint_at_least_n_with_all(self, mock_input):
-        result = select_constraint(self.people)
+        result = select_constraint(self.people, self.num_groups)
         self.assertIsInstance(result, AtLeastN)
         self.assertEqual(result.__repr__(), "CONSTRAINT: gender has at least 4 with weight 1")
 
@@ -172,7 +174,7 @@ class TestSelectionFunctions(unittest.TestCase):
         ],
     )
     def test_select_group_size(self, mock_input):
-        result = select_constraint(self.people)
+        result = select_constraint(self.people, self.num_groups)
 
         self.assertIsInstance(result, GroupSize)
 

@@ -70,6 +70,24 @@ def validate_solution(people, constraints, num_groups):
 
     return all_issues
 
+def print_validation(issues: List[Any]):
+    print("\n--- VALIDATION: The following constraints are not satisfied ---")
+
+    if not issues:
+        print("✓ No constraint violations found")
+
+    for issue in issues:
+
+        print(f"\n{issue['constraint']}")
+        print(f"  Group: {issue['group']}")
+        print(f"  Problem: {issue['message']}")
+
+        if issue["people"]:
+            print(
+                f"  People involved: "
+                f"{', '.join(str(issue['people']))}"
+            )
+
 
 # =========================================================
 # EXAMPLE USAGE
@@ -129,7 +147,8 @@ if __name__ == "__main__":
 
         for p in members:
             print(
-                f"  {p.name} | "
+                f"  {p.id} | "
+                f"Name={p.attributes.get('name')} | "
                 f"Ampel={p.attributes.get('Ampel')} | "
                 f"Gender={p.attributes.get('Gender')} | "
                 f"GLK={p.attributes.get('GLK_Gruppe')}"
@@ -139,20 +158,4 @@ if __name__ == "__main__":
         constraints,
         num_groups=3,
     )
-
-    print("\n--- VALIDATION: The following constraints are not satisfied ---")
-
-    if not issues:
-        print("✓ No constraint violations found")
-
-    for issue in issues:
-
-        print(f"\n{issue['constraint']}")
-        print(f"  Group: {issue['group']}")
-        print(f"  Problem: {issue['message']}")
-
-        if issue["people"]:
-            print(
-                f"  People involved: "
-                f"{', '.join(issue['people'])}"
-            )
+    print_validation(issues)
