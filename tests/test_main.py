@@ -6,7 +6,7 @@ from unittest.mock import patch
 from glk_tinder.main import main
 
 
-def test_main(tmp_path):
+def test_main_with_input(tmp_path):
     input_file = Path("tests/data/input_file1.csv")
     output_file = tmp_path / "out.csv"
 
@@ -27,12 +27,20 @@ def test_main(tmp_path):
         ],
     ):
         main(input_file, output_file)
+    actual = output_file.read_text()
+    expected = Path("tests/data/expected_file1.csv").read_text()
+    assert len(actual) == len(expected)
+
+def test_main_with_constraints(tmp_path):
+    input_file = Path("tests/data/input_file1.csv")
+    constraints_file = Path("tests/data/constraints1.yaml")
+    output_file = tmp_path / "out.csv"
+
+    main(input_file, output_file, constraints_file)
 
     actual = output_file.read_text()
     expected = Path("tests/data/expected_file1.csv").read_text()
-
     assert len(actual) == len(expected)
-
 
 def test_cli(tmp_path):
     input_file = Path("tests/data/input_file1.csv")
@@ -63,6 +71,32 @@ def test_cli(tmp_path):
             str(output_file),
         ],
         input=user_input,
+        text=True,
+        check=True,
+    )
+
+    actual = output_file.read_text()
+    expected = Path("tests/data/expected_file1.csv").read_text()
+
+    assert len(actual) == len(expected)
+
+def test_cli_with_constraints(tmp_path):
+    constraints_file = Path("tests/data/constraints1.yaml")
+    input_file = Path("tests/data/input_file1.csv")
+    output_file = tmp_path / "out.csv"
+
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "glk_tinder",
+            "--input",
+            str(input_file),
+            "--output",
+            str(output_file),
+            "--constraints",
+            str(constraints_file)
+        ],
         text=True,
         check=True,
     )

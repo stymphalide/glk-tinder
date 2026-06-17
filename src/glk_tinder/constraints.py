@@ -3,6 +3,15 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
+VALID_TYPES = [
+    "balanced",
+    "at most n",
+    "at least n",
+    "balanced group size",
+]
+PRIORITIES_AND_WEIGHTS = {"low": 1, "medium": 10, "high": 100}
+DEFAULT_PRIORITY = "medium"
+
 
 class Constraint(ABC):
     @abstractmethod
@@ -80,11 +89,7 @@ class Balanced(Constraint):
 
             for g in range(num_groups):
 
-                members = [
-                    p
-                    for p in persons
-                    if p.attributes.get("group") == g
-                ]
+                members = [p for p in persons if p.attributes.get("group") == g]
 
                 count = len(members)
 
@@ -94,8 +99,7 @@ class Balanced(Constraint):
                             "constraint": repr(self),
                             "group": g,
                             "message": (
-                                f"{key}: {count} "
-                                f"(expected {sorted(allowed)})"
+                                f"{key}: {count} " f"(expected {sorted(allowed)})"
                             ),
                             "people": [p.id for p in members],
                         }
@@ -151,11 +155,7 @@ class AtMostN(Constraint):
                     model.Add(expr <= self.max_count)
 
                 else:
-                    excess = model.NewIntVar(
-                        0,
-                        len(idx),
-                        f"excess_{key}_{g}"
-                    )
+                    excess = model.NewIntVar(0, len(idx), f"excess_{key}_{g}")
 
                     model.Add(excess >= expr - self.max_count)
                     model.Add(excess >= 0)
@@ -167,23 +167,23 @@ class AtMostN(Constraint):
 
         for g in range(num_groups):
 
-            group_people = [
-                p for p in people
-                if p.attributes.get("group") == g
-            ]
+            group_people = [p for p in people if p.attributes.get("group") == g]
 
             offenders = [
-                p for p in group_people
+                p
+                for p in group_people
                 if p.attributes.get(self.attr_name) == self.value
             ]
 
             if len(offenders) > self.max_count:
-                issues.append({
-                    "constraint": repr(self),
-                    "group": g,
-                    "message": f"{len(offenders)} > {self.max_count}",
-                    "people": [p.id for p in offenders],
-                })
+                issues.append(
+                    {
+                        "constraint": repr(self),
+                        "group": g,
+                        "message": f"{len(offenders)} > {self.max_count}",
+                        "people": [p.id for p in offenders],
+                    }
+                )
 
         return issues
 
@@ -195,7 +195,11 @@ class AtMostN(Constraint):
 
 class AtLeastN(Constraint):
     def __init__(
-        self, attr_name: str, min_count: int, value: Any = None, weight: int | None = None
+        self,
+        attr_name: str,
+        min_count: int,
+        value: Any = None,
+        weight: int | None = None,
     ):
         self.attr_name = attr_name
         self.value = value
@@ -232,23 +236,17 @@ class AtLeastN(Constraint):
                 p
                 for p in people
                 if p.attributes.get("group") == g
-                   and p.attributes.get(self.attr_name) == self.value
+                and p.attributes.get(self.attr_name) == self.value
             ]
 
             if len(matching) < self.min_count:
-                members = [
-                    p
-                    for p in people
-                    if p.attributes.get("group") == g
-                ]
+                members = [p for p in people if p.attributes.get("group") == g]
 
                 issues.append(
                     {
                         "constraint": repr(self),
                         "group": g,
-                        "message": (
-                            f"{len(matching)} < {self.min_count}"
-                        ),
+                        "message": (f"{len(matching)} < {self.min_count}"),
                         "people": [p.id for p in members],
                     }
                 )
@@ -288,11 +286,7 @@ class GroupSize(Constraint):
 
         for g in range(num_groups):
 
-            members = [
-                p
-                for p in people
-                if p.attributes.get("group") == g
-            ]
+            members = [p for p in people if p.attributes.get("group") == g]
 
             size = len(members)
 
@@ -301,9 +295,7 @@ class GroupSize(Constraint):
                     {
                         "constraint": repr(self),
                         "group": g,
-                        "message": (
-                            f"size={size}, target={self.target_size}"
-                        ),
+                        "message": (f"size={size}, target={self.target_size}"),
                         "people": [p.id for p in members],
                     }
                 )

@@ -1,6 +1,20 @@
-from glk_tinder.constraints import Balanced, AtLeastN, AtMostN, Constraint, GroupSize
+from glk_tinder.constraints import (
+    Constraint,
+    Balanced,
+    AtLeastN,
+    AtMostN,
+    Constraint,
+    GroupSize,
+    DEFAULT_PRIORITY,
+    VALID_TYPES,
+    PRIORITIES_AND_WEIGHTS,
+)
 from dataclasses import dataclass, field
 from typing import Dict, List, Any
+
+
+from pathlib import Path
+import yaml
 
 
 @dataclass
@@ -74,58 +88,53 @@ def select_attribute(attributes: List[str]) -> str:
 #             print(f"Please enter a positive integer.")
 #     return group_size
 
+
 def select_priority() -> int:
-    priorities_to_weight = {
-        "low": 1,
-        "medium": 10,
-        "high": 100
-    }
-    priorities = list(priorities_to_weight.keys())
+    priorities = list(PRIORITIES_AND_WEIGHTS.keys())
 
     # Select Priority
     print(f"\nSelect Priority (default=medium)")
-    for i,p in enumerate(priorities):
+    for i, p in enumerate(priorities):
         print(f"{i}: {p} ")
     while True:
         try:
             priority_idx = input("Select the priority (enter for default): ")
             if priority_idx == "":
-                priority = "medium"
+                priority = DEFAULT_PRIORITY
                 break
-            elif 0<= int(priority_idx) < len(priorities_to_weight):
+            elif 0 <= int(priority_idx) < len(PRIORITIES_AND_WEIGHTS):
                 priority = priorities[int(priority_idx)]
                 break
             print("Invalid selection.")
         except ValueError:
-            print(f"Please enter a number between 0 and {len(priorities_to_weight) - 1}")
-    
+            print(
+                f"Please enter a number between 0 and {len(PRIORITIES_AND_WEIGHTS) - 1}"
+            )
+
     print(f"\nSelected priority: {priority}")
-    return priorities_to_weight[priority]
-    
+    return PRIORITIES_AND_WEIGHTS[priority]
+
 
 def select_constraint(people: List[Person], num_groups: int) -> Constraint:
-    constraint_types = ["balanced", "at most n", "at least n", "balanced group size"]
 
     attributes = list(people[0].attributes.keys())
 
     # Step 1: Select constraint type
     print("Available constraint types:")
-    for i, constraint in enumerate(constraint_types):
+    for i, constraint in enumerate(VALID_TYPES):
         print(f"{i}: {constraint}")
     while True:
         try:
             selection = int(input("Select a constraint type: "))
-            if 0 <= selection < len(constraint_types):
+            if 0 <= selection < len(VALID_TYPES):
                 break
             print("Invalid selection.")
         except ValueError:
-            print(f"Please enter a number. between 0 and {len(constraint_types) - 1}")
+            print(f"Please enter a number. between 0 and {len(VALID_TYPES) - 1}")
 
-    selected_constraint = constraint_types[selection]
+    selected_constraint = VALID_TYPES[selection]
     print(f"\nSelected: {selected_constraint}")
-    
 
-    
     print(f"\nYou selected: ")
     print(f"Constraint Type: {selected_constraint}")
 
@@ -184,7 +193,9 @@ def select_constraint(people: List[Person], num_groups: int) -> Constraint:
                 print("Invalid selection.")
             except ValueError:
                 print(f"Please enter an integer larger than 0.")
-        return AtMostN(selected_attribute, n_selection, selected_value, weight=priority_weight)
+        return AtMostN(
+            selected_attribute, n_selection, selected_value, weight=priority_weight
+        )
     elif selected_constraint == "at least n":
         while True:
             try:
@@ -199,4 +210,119 @@ def select_constraint(people: List[Person], num_groups: int) -> Constraint:
             except ValueError:
                 print(f"Please enter an integer larger than 0.")
 
-        return AtLeastN(selected_attribute, n_selection, selected_value, weight=priority_weight)
+        return AtLeastN(
+            selected_attribute, n_selection, selected_value, weight=priority_weight
+        )
+
+
+def read_constraints_file(
+    filename: str | Path, attributes: List[str], number_of_rows: int
+) -> tuple[int, List[Constraint]]:
+    with open(filename, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    if not isinstance(data, dict):
+        raise ValueError("YAML root must be a mapping")
+
+    if "num_groups" not in data:
+        raise ValueError("Missing required field: num_groups")
+
+    if "constraints" not in data:
+        raise ValueError("Missing required field: constraints")
+
+    num_groups = data["num_groups"]
+    constraints = data["constraints"]
+
+    if not isinstance(num_groups, int) or num_groups <= 0:
+        raise ValueError("num_groups must be a positive integer")
+
+    if not isinstance(constraints, list):
+        raise ValueError("constraints must be a list")
+
+    normalized_constraints = []
+    for i, constraint in enumerate(constraints):
+
+        if not isinstance(constraint, dict):
+            raise ValueError(f"Constraint #{i} must be a mapping")
+        constraint_type = constraint.get("type")
+        if constraint_type not in VALID_TYPES:
+            raise ValueError(f"Constraint #{i}: invalid type '{constraint_type}'")
+        priority = constraint.get("priority", DEFAULT_PRIORITY)
+        if priority not in PRIORITIES_AND_WEIGHTS:
+            raise ValueError(f"Constraint #{i}: invalid priority '{priority}'")
+
+        match constraint_type:
+            case "balanced":
+                if "attribute" not in constraint:
+                    raise ValueError(f"Constraint #{i}: balanced requires 'attribute'")
+                attribute = constraint.get("attribute")
+                if attribute not in attributes:
+                    raise ValueError(
+                        f"Constraint #{i}: attribute must match column names in data."
+                    )
+                normalized = Balanced(
+                    attribute, weight=PRIORITIES_AND_WEIGHTS[priority]
+                )
+            case "balanced group size":
+                normalized = GroupSize(
+                    int(number_of_rows / num_groups),
+                    weight=PRIORITIES_AND_WEIGHTS[priority],
+                )
+
+            case "at most n":
+                if "attribute" not in constraint:
+                    raise ValueError(
+                        f"Constraint #{i}: {constraint_type} requires 'attribute'"
+                    )
+                attribute = constraint.get("attribute")
+                if attribute not in attributes:
+                    raise ValueError(
+                        f"Constraint #{i}: attribute must match column names in data."
+                    )
+
+                if "limit" not in constraint:
+                    raise ValueError(
+                        f"Constraint #{i}: {constraint_type} requires 'limit'"
+                    )
+                limit = constraint.get("limit")
+                if not isinstance(limit, int) or limit < 0:
+                    raise ValueError("num_groups must be a non-negative integer")
+
+                value = constraint.get("value", None)
+
+                normalized = AtMostN(
+                    attribute,
+                    max_count=limit,
+                    value=value,
+                    weight=PRIORITIES_AND_WEIGHTS[priority],
+                )
+
+            case "at least n":
+                if "attribute" not in constraint:
+                    raise ValueError(
+                        f"Constraint #{i}: {constraint_type} requires 'attribute'"
+                    )
+                attribute = constraint.get("attribute")
+                if attribute not in attributes:
+                    raise ValueError(
+                        f"Constraint #{i}: attribute must match column names in data."
+                    )
+
+                if "limit" not in constraint:
+                    raise ValueError(
+                        f"Constraint #{i}: {constraint_type} requires 'limit'"
+                    )
+                limit = constraint.get("limit")
+                if not isinstance(limit, int) or limit < 0:
+                    raise ValueError("num_groups must be a non-negative integer")
+
+                value = constraint.get("value", None)
+
+                normalized = AtLeastN(
+                    attribute,
+                    min_count=limit,
+                    value=value,
+                    weight=PRIORITIES_AND_WEIGHTS[priority],
+                )
+
+        normalized_constraints.append(normalized)
+    return num_groups, normalized_constraints

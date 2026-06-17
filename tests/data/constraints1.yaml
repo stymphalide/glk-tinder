@@ -1,0 +1,5 @@
+num_groups: 2
+constraints:
+  - type: balanced
+    priority: medium
+    attribute: GLK_Gruppe

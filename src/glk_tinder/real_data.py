@@ -5,16 +5,15 @@ from solver import *
 from constraints import *
 
 csv_path = (
-    Path(__file__).resolve().parent
-    / "../../tests/data/input_glk.csv"
+    Path(__file__).resolve().parent / "../../tests/data/input_glk.csv"
 ).resolve()
 
 
 people = read_people_from_csv(csv_path)
 
 constraints = [
-    Balanced('geschlecht', weight=5),
-    AtMostN('ortsgruppe', max_count=1, weight=10),
+    Balanced("geschlecht", weight=5),
+    AtMostN("ortsgruppe", max_count=1, weight=10),
     GroupSize(6),
 ]
 
@@ -25,7 +24,7 @@ issues = explain_solution(result, x, cp_solver, constraints, num_groups=5)
 
 print("\n--- ISSUES ---")
 for i in issues:
-        print(i)
+    print(i)
 
 print("\n--- GROUPS ---")
 
@@ -45,9 +44,3 @@ for g, members in groups.items():
             f"Ortsgruppe={p.attributes.get('ortsgruppe')} | "
             f"Geschlecht={p.attributes.get('geschlecht')} | "
         )
-
-
-
-
-
-
