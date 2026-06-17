@@ -8,6 +8,7 @@ from glk_tinder.selection import (
     select_num_groups,
     select_constraint,
     select_constraints,
+    select_priority,
 )
 
 from glk_tinder.constraints import Balanced, AtMostN, AtLeastN, GroupSize
@@ -38,6 +39,16 @@ class TestSelectionFunctions(unittest.TestCase):
         result = select_num_groups()
         self.assertEqual(result, 3)
 
+    @patch("builtins.input", side_effect=["invalid", "0"])
+    def test_select_priority(self, mock_input):
+        result = select_priority()
+        self.assertEqual(result, 1)
+    @patch("builtins.input", side_effect=[""])
+    def test_select_priority_default(self, mock_input):
+        result = select_priority()
+        self.assertEqual(result, 10)
+
+
     @patch("builtins.input", side_effect=["abc", "-1", "2"])
     def test_select_num_groups_retries_until_valid(self, mock_input):
         result = select_num_groups()
@@ -47,6 +58,7 @@ class TestSelectionFunctions(unittest.TestCase):
         "builtins.input",
         side_effect=[
             "0",  # select "balanced"
+            "0",  # valid constraint type
             "0",  # select first attribute
         ],
     )
@@ -61,6 +73,7 @@ class TestSelectionFunctions(unittest.TestCase):
             "invalid",  # invalid constraint type
             "0",  # valid constraint type
             "invalid",  # invalid attribute
+            "0",  # low
             "0",  # valid attribute
         ],
     )
@@ -74,10 +87,12 @@ class TestSelectionFunctions(unittest.TestCase):
         side_effect=[
             # First constraint
             "0",  # balanced
+            "0",  # low
             "0",  # attribute
             "y",  # continue
             # Second constraint
             "0",  # balanced
+            "0",  # low
             "1",  # attribute
             "n",  # stop
         ],
@@ -92,6 +107,7 @@ class TestSelectionFunctions(unittest.TestCase):
         "builtins.input",
         side_effect=[
             "1",  # select "AtMostN"
+            "0",  # low
             "0",  # select first attribute
             "0",  # select first value
             "5",  # Select n
@@ -106,6 +122,7 @@ class TestSelectionFunctions(unittest.TestCase):
         "builtins.input",
         side_effect=[
             "2",  # select "AtLeastN"
+            "0",  # low
             "0",  # select first attribute
             "0",  # select ALL
             "1",  # Select n
@@ -120,6 +137,7 @@ class TestSelectionFunctions(unittest.TestCase):
         "builtins.input",
         side_effect=[
             "2",  # select "AtLeastN"
+            "0",  # low
             "0",  # select first attribute
             "1",  # select F
             "4",  # Select n
@@ -134,6 +152,7 @@ class TestSelectionFunctions(unittest.TestCase):
         "builtins.input",
         side_effect=[
             "2",  # select "AtLeastN"
+            "0",  # low
             "0",  # select first attribute
             "0",  # select ALL
             "4",  # Select n
@@ -142,12 +161,13 @@ class TestSelectionFunctions(unittest.TestCase):
     def test_select_constraint_at_least_n_with_all(self, mock_input):
         result = select_constraint(self.people)
         self.assertIsInstance(result, AtLeastN)
-        self.assertEqual(result.__repr__(), "CONSTRAINT: gender has at least 4")
+        self.assertEqual(result.__repr__(), "CONSTRAINT: gender has at least 4 with weight 1")
 
     @patch(
         "builtins.input",
         side_effect=[
             "3",  # select "GroupSize"
+            "0",  # low
             "1",  # select group size 1
         ],
     )

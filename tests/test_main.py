@@ -13,13 +13,15 @@ def test_main(tmp_path):
     # Mock interactive input:
     # 2 groups
     # constraint type = balanced (0)
+    # priority = medium (1)
     # attribute = first attribute (0)
     # do not add another constraint
     with patch(
         "builtins.input",
         side_effect=[
-            "6",
+            "2",
             "0",
+            "1",
             "0",
             "n",
         ],
@@ -40,8 +42,9 @@ def test_cli(tmp_path):
     user_input = (
         "\n".join(
             [
-                "6",  # number of groups
+                "2",  # number of groups
                 "0",  # balanced constraint
+                "1",  # priority = medium
                 "0",  # first attribute
                 "n",  # stop adding constraints
             ]

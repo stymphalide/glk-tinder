@@ -66,6 +66,7 @@ def main(input_file, output_file):
     """Main entry point."""
     # Load input file with people and data
     people = read_people_from_csv(input_file)
+    # TODO: Print Head of dataframe
     num_groups = select_num_groups()
     constraints = select_constraints(people)
     people, _x, _cp_solver, _constraints = solver(
