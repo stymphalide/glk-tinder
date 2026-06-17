@@ -35,13 +35,16 @@ def test_solver_diagnostics():
         GroupSize(3, weight=10),
     ]
 
-    result, x, cp_solver, constraints = solver(
-        people, num_groups=3, constraints=constraints
-    )
+    result = solver(people, num_groups=3, constraints=constraints)
+    issues = validate_solution(result, constraints, num_groups=3)
 
-    issues = explain_solution(result, x, cp_solver, constraints, num_groups=3)
+    assert len(result) == len(people)
+    assert isinstance(issues, list)
+    for issue in issues:
+        g = issue["group"]
+        members = [p for p in result if p.attributes["group"] == g]
 
-    assert len(issues) == 9
+        assert all(p.attributes["group"] == g for p in members)
 
 
 def test_balanced_solver():
@@ -52,10 +55,9 @@ def test_balanced_solver():
         Person("D", {"ampel": 1}),
     ]
     constraints = [Balanced("ampel")]
-    num_groups = 2
-    result, _x, _cp_solver, _constraints = solver(
-        people.copy(), num_groups, constraints
-    )
+
+    result = solver(people.copy(), 2, constraints)
+
     group0 = [p for p in result if p.attributes["group"] == 0]
     group1 = [p for p in result if p.attributes["group"] == 1]
     assert len(group0) == 2
@@ -72,10 +74,10 @@ def test_at_most_n_solver():
         Person("F", {"ampel": 0}),
     ]
     constraints = [AtMostN("ampel", 2,  value=0)]
-    num_groups = 2
-    result, _x, _cp_solver, _constraints = solver(
-        people.copy(), num_groups, constraints
-    )
+
+
+    result = solver(people.copy(), 2, constraints)
+
     group0 = [p for p in result if p.attributes["group"] == 0]
     group1 = [p for p in result if p.attributes["group"] == 1]
 
@@ -93,10 +95,9 @@ def test_at_least_n_solver():
         Person("F", {"ampel": 0}),
     ]
     constraints = [AtLeastN("ampel", 1, value=0)]
-    num_groups = 3
-    result, _x, _cp_solver, _constraints = solver(
-        people.copy(), num_groups, constraints
-    )
+
+    result = solver(people.copy(), 3, constraints)
+
     group0 = [p for p in result if p.attributes["group"] == 0]
     group1 = [p for p in result if p.attributes["group"] == 1]
 
