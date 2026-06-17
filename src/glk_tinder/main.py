@@ -46,7 +46,6 @@ def read_people_from_csv(filename: str) -> List[Person]:
 
     return people
 
-
 def print_head(persons: list[Person], n: int = 5) -> None:
     if not persons:
         print("No data")
@@ -99,7 +98,7 @@ def main(input_file, output_file):
     people = read_people_from_csv(input_file)
     print_head(people)
     num_groups = select_num_groups()
-    constraints = select_constraints(people)
+    constraints = select_constraints(people, num_groups)
     people = solver(
         people, num_groups=num_groups, constraints=constraints
     )

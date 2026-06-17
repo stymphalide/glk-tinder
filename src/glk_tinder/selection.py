@@ -24,10 +24,10 @@ def select_num_groups() -> int:
     return num_groups
 
 
-def select_constraints(people: List[Person]) -> List[Constraint]:
+def select_constraints(people: List[Person], num_groups: int) -> List[Constraint]:
     constraints = []
     while True:
-        constraint = select_constraint(people)
+        constraint = select_constraint(people, num_groups)
         constraints.append(constraint)
 
         print("\nCurrent selections:")
@@ -60,19 +60,19 @@ def select_attribute(attributes: List[str]) -> str:
     return attributes[attr_selection]
 
 
-def select_group_size() -> int:
-    while True:
-        try:
-            group_size = int(
-                input("\nWhat size should the group size be? ").strip().lower()
-            )
+# def select_group_size() -> int:
+#     while True:
+#         try:
+#             group_size = int(
+#                 input("\nWhat size should the group size be? ").strip().lower()
+#             )
 
-            if 1 <= group_size:
-                break
-            print("Invalid selection.")
-        except ValueError:
-            print(f"Please enter a positive integer.")
-    return group_size
+#             if 1 <= group_size:
+#                 break
+#             print("Invalid selection.")
+#         except ValueError:
+#             print(f"Please enter a positive integer.")
+#     return group_size
 
 def select_priority() -> int:
     priorities_to_weight = {
@@ -103,8 +103,8 @@ def select_priority() -> int:
     return priorities_to_weight[priority]
     
 
-def select_constraint(people: List[Person]) -> Constraint:
-    constraint_types = ["balanced", "at most n", "at least n", "group size"]
+def select_constraint(people: List[Person], num_groups: int) -> Constraint:
+    constraint_types = ["balanced", "at most n", "at least n", "balanced group size"]
 
     attributes = list(people[0].attributes.keys())
 
@@ -132,8 +132,8 @@ def select_constraint(people: List[Person]) -> Constraint:
     priority_weight = select_priority()
 
     # Handle Group Size
-    if selected_constraint == "group size":
-        group_size = select_group_size()
+    if selected_constraint == "balanced group size":
+        group_size = int(len(people) / num_groups)
         return GroupSize(group_size, weight=priority_weight)
 
     # Attribute selection
