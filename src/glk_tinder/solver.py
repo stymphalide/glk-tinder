@@ -85,7 +85,7 @@ def print_validation(issues: List[Any]):
         if issue["people"]:
             print(
                 f"  People involved: "
-                f"{', '.join(issue['people'])}"
+                f"{', '.join(str(issue['people']))}"
             )
 
 
@@ -147,7 +147,8 @@ if __name__ == "__main__":
 
         for p in members:
             print(
-                f"  {p.name} | "
+                f"  {p.id} | "
+                f"Name={p.attributes.get('name')} | "
                 f"Ampel={p.attributes.get('Ampel')} | "
                 f"Gender={p.attributes.get('Gender')} | "
                 f"GLK={p.attributes.get('GLK_Gruppe')}"

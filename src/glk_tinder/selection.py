@@ -5,7 +5,7 @@ from typing import Dict, List, Any
 
 @dataclass
 class Person:
-    name: str
+    id: int
     attributes: Dict[str, Any] = field(default_factory=dict)
 
 

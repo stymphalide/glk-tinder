@@ -36,15 +36,13 @@ def read_people_from_csv(filename: str) -> List[Person]:
     with open(filename, mode="r", newline="", encoding="utf-8-sig") as file:
         reader = csv.DictReader(file)
         reader.fieldnames = [normalize_header(h) for h in reader.fieldnames]
-
+        row_number = 0
         for row in reader:
-            # Extract required field
-            name = row.pop("name")
-
             # Remaining columns become dynamic attributes
-            person = Person(name=name, attributes=row)
+            person = Person(id = row_number, attributes=row)
 
             people.append(person)
+            row_number += 1
 
     return people
 
@@ -55,7 +53,7 @@ def print_head(persons: list[Person], n: int = 5) -> None:
         return
 
     # Collect all attribute names
-    columns = ["name"]
+    columns = ["id"]
     for person in persons:
         for attr in person.attributes:
             if attr not in columns:
@@ -64,7 +62,7 @@ def print_head(persons: list[Person], n: int = 5) -> None:
     # Build rows
     rows = []
     for person in persons[:n]:
-        row = [person.name]
+        row = [person.id]
         row.extend(person.attributes.get(col, "") for col in columns[1:])
         rows.append(row)
     print(f"{n} / {len(persons)} rows and {len(columns)} columns printed.")
@@ -73,7 +71,7 @@ def print_head(persons: list[Person], n: int = 5) -> None:
 
 def write_people_to_csv(filename: str, people: List[Person]):
     # Define CSV columns
-    fieldnames = ["name"] + ["group"]
+    fieldnames = list(people[0].attributes.keys())
 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -81,9 +79,18 @@ def write_people_to_csv(filename: str, people: List[Person]):
         writer.writeheader()
 
         for person in sorted(people, key=lambda x: x.attributes["group"]):
-            row = {"name": person.name, "group": person.attributes["group"]}
+
+            row = person.attributes
             writer.writerow(row)
 
+def print_groups(persons: list[Person]):
+    groups = {}
+    for person in persons:
+        if person.attributes["group"] in groups:
+            groups[person.attributes["group"]].append(person.id)
+        else:
+            groups[person.attributes["group"]] = [person.id]
+    print(groups)
 
 def main(input_file, output_file):
     """Main entry point."""
@@ -97,6 +104,7 @@ def main(input_file, output_file):
     )
     issues = validate_solution(people, constraints, num_groups)
     print_validation(issues)
+    print_groups(people)
     write_people_to_csv(output_file, people)
 
 

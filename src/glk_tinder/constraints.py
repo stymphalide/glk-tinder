@@ -97,7 +97,7 @@ class Balanced(Constraint):
                                 f"{key}: {count} "
                                 f"(expected {sorted(allowed)})"
                             ),
-                            "people": [p.name for p in members],
+                            "people": [p.id for p in members],
                         }
                     )
 
@@ -182,7 +182,7 @@ class AtMostN(Constraint):
                     "constraint": repr(self),
                     "group": g,
                     "message": f"{len(offenders)} > {self.max_count}",
-                    "people": [p.name for p in offenders],
+                    "people": [p.id for p in offenders],
                 })
 
         return issues
@@ -249,7 +249,7 @@ class AtLeastN(Constraint):
                         "message": (
                             f"{len(matching)} < {self.min_count}"
                         ),
-                        "people": [p.name for p in members],
+                        "people": [p.id for p in members],
                     }
                 )
 
@@ -304,7 +304,7 @@ class GroupSize(Constraint):
                         "message": (
                             f"size={size}, target={self.target_size}"
                         ),
-                        "people": [p.name for p in members],
+                        "people": [p.id for p in members],
                     }
                 )
 
