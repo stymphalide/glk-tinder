@@ -1,0 +1,10 @@
+num_groups: 5
+constraints:
+  - type: at most n
+    priority: high
+    attribute: Ortsgruppe
+    limit: 1
+  - type: balanced
+    priority: medium
+    attribute: Geschlecht
+  - type: balanced group size
