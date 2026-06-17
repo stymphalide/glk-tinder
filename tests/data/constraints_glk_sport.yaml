@@ -1,0 +1,26 @@
+num_groups: 6
+constraints:
+  - type: at most n
+    priority: high
+    attribute: Ortsgruppe
+    limit: 1
+  - type: at most n
+    priority: high
+    attribute: GLK-Gruppe
+    limit: 1
+  - type: balanced
+    priority: medium
+    attribute: Geschlecht
+  - type: balanced group size
+  - type: balanced
+    priority: medium
+    attribute: "Teamfähigkeit und Einfühlungsvermögen "
+  - type: balanced
+    priority: medium
+    attribute: "Planungs- und  Organisationsfähigkeit "
+  - type: balanced
+    priority: medium
+    attribute: "Engagement und Selbstreflexion "
+  - type: balanced
+    priority: medium
+    attribute: "Führen, Auftreten und Leiten "
