@@ -17,6 +17,10 @@ python -m glk_tinder --input tests/data/input_glk.csv --output out.csv
 ```bash
 python -m glk_tinder --input tests/data/input_glk.csv --output out.csv --constraints tests/data/constraints_glk_gruppeneinteilung.yaml
 ```
+```bash
+python -m glk_tinder --input tests/data/input_glk_mit_gruppeneinteilung_kompetenzen.csv --output out.csv --constraints tests/data/constraints_glk_sport.yaml
+```
+
 
 
 ## Structure Constraint File:
