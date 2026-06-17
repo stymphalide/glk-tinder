@@ -9,7 +9,7 @@ class Constraint(ABC):
     def apply(self, model, x, people, num_groups):
         pass
 
-    def explain(self, people, x, solver, num_groups):
+    def validate(self, people, num_groups):
         return []
 
     def __repr__(self) -> str:
@@ -54,28 +54,51 @@ class Balanced(Constraint):
     def __repr__(self) -> str:
         return f"CONSTRAINT: Balance {self.attr_name}"
 
-    def explain(self, people, x, solver, num_groups):
+    def validate(self, people, num_groups):
         issues = []
 
         buckets = {}
 
-        for i, p in enumerate(people):
+        for p in people:
             key = p.attributes.get(self.attr_name)
+
             if key is None:
                 continue
-            buckets.setdefault(key, []).append(i)
 
-        for key, idx in buckets.items():
+            buckets.setdefault(key, []).append(p)
 
-            base = len(idx) // num_groups
+        for key, persons in buckets.items():
+
+            base = len(persons) // num_groups
+            remainder = len(persons) % num_groups
+
+            # Valid counts are either base or base+1
+            allowed = {base}
+
+            if remainder > 0:
+                allowed.add(base + 1)
 
             for g in range(num_groups):
-                count = sum(solver.Value(x[i, g]) for i in idx)
 
-                if abs(count - base) > 0:
+                members = [
+                    p
+                    for p in persons
+                    if p.attributes.get("group") == g
+                ]
+
+                count = len(members)
+
+                if count not in allowed:
                     issues.append(
-                        f"[Balanced] {self.attr_name}={key} "
-                        f"group {g}: {count} vs {base}"
+                        {
+                            "constraint": repr(self),
+                            "group": g,
+                            "message": (
+                                f"{key}: {count} "
+                                f"(expected {sorted(allowed)})"
+                            ),
+                            "people": [p.name for p in members],
+                        }
                     )
 
         return issues
@@ -95,9 +118,7 @@ class AtMostN(Constraint):
         self.weight = weight
 
     def apply(self, model, x, people, num_groups, objective_terms=None):
-        print(self.value)
         if self.value is not None:
-            print("hello")
             buckets = {
                 self.value: [
                     i
@@ -141,23 +162,28 @@ class AtMostN(Constraint):
 
                     objective_terms.append(self.weight * excess)
 
-    def explain(self, people, x, solver, num_groups):
+    def validate(self, people, num_groups):
         issues = []
 
-        idx = [
-            i
-            for i, p in enumerate(people)
-            if p.attributes.get(self.attr_name) == self.value
-        ]
-
         for g in range(num_groups):
-            count = sum(solver.Value(x[i, g]) for i in idx)
 
-            if count > self.max_count:
-                issues.append(
-                    f"[AtMostN] {self.attr_name}={self.value} "
-                    f"group {g}: {count} > {self.max_count}"
-                )
+            group_people = [
+                p for p in people
+                if p.attributes.get("group") == g
+            ]
+
+            offenders = [
+                p for p in group_people
+                if p.attributes.get(self.attr_name) == self.value
+            ]
+
+            if len(offenders) > self.max_count:
+                issues.append({
+                    "constraint": repr(self),
+                    "group": g,
+                    "message": f"{len(offenders)} > {self.max_count}",
+                    "people": [p.name for p in offenders],
+                })
 
         return issues
 
@@ -199,22 +225,34 @@ class AtLeastN(Constraint):
 
                 objective_terms.append(self.weight * deficit)
 
-    def explain(self, people, x, solver, num_groups):
+    def validate(self, people, num_groups):
         issues = []
 
-        idx = [
-            i
-            for i, p in enumerate(people)
-            if p.attributes.get(self.attr_name) == self.value
-        ]
-
         for g in range(num_groups):
-            count = sum(solver.Value(x[i, g]) for i in idx)
 
-            if count < self.min_count:
+            matching = [
+                p
+                for p in people
+                if p.attributes.get("group") == g
+                   and p.attributes.get(self.attr_name) == self.value
+            ]
+
+            if len(matching) < self.min_count:
+                members = [
+                    p
+                    for p in people
+                    if p.attributes.get("group") == g
+                ]
+
                 issues.append(
-                    f"[AtLeastN] {self.attr_name}={self.value} "
-                    f"group {g}: {count} < {self.min_count}"
+                    {
+                        "constraint": repr(self),
+                        "group": g,
+                        "message": (
+                            f"{len(matching)} < {self.min_count}"
+                        ),
+                        "people": [p.name for p in members],
+                    }
                 )
 
         return issues
@@ -247,14 +285,30 @@ class GroupSize(Constraint):
             # penalize deviation
             objective_terms.append(self.weight * dev)
 
-    def explain(self, people, x, solver, num_groups):
+    def validate(self, people, num_groups):
         issues = []
 
         for g in range(num_groups):
-            size = sum(solver.Value(x[i, g]) for i in range(len(people)))
+
+            members = [
+                p
+                for p in people
+                if p.attributes.get("group") == g
+            ]
+
+            size = len(members)
 
             if size != self.target_size:
-                issues.append(f"Group {g}: size={size}, target={self.target_size}")
+                issues.append(
+                    {
+                        "constraint": repr(self),
+                        "group": g,
+                        "message": (
+                            f"size={size}, target={self.target_size}"
+                        ),
+                        "people": [p.name for p in members],
+                    }
+                )
 
         return issues
 

@@ -59,15 +59,14 @@ def solver(people: List[Person], num_groups: int, constraints: List[Constraint])
                 people[i].attributes["group"] = g
                 break
 
-    return people, x, cp_solver, constraints
+    return people
 
 
-def explain_solution(people, x, solver, constraints, num_groups):
+def validate_solution(people, constraints, num_groups):
     all_issues = []
 
     for c in constraints:
-        if hasattr(c, "explain"):
-            all_issues.extend(c.explain(people, x, solver, num_groups))
+        all_issues.extend(c.validate(people, num_groups))
 
     return all_issues
 
@@ -103,22 +102,18 @@ if __name__ == "__main__":
         # balance genders
         Balanced("Gender", weight=500),
         # every group should ideally have one red
-        AtLeastN("Ampel", "red", 1, weight=8),
+        AtLeastN("Ampel", 1, "red", weight=8),
         # avoid too many greens in one group
-        AtMostN("Ampel", "green", 1, weight=3),
+        AtMostN("Ampel", 1, "green", weight=3),
         # keep groups near size 3
         GroupSize(3, weight=10),
     ]
 
-    result, x, cp_solver, constraints = solver(
-        people, num_groups=3, constraints=constraints
+    result = solver(
+        people,
+        num_groups=3,
+        constraints=constraints,
     )
-
-    issues = explain_solution(result, x, cp_solver, constraints, num_groups=3)
-
-    print("\n--- ISSUES ---")
-    for i in issues:
-        print(i)
 
     print("\n--- GROUPS ---")
 
@@ -138,4 +133,26 @@ if __name__ == "__main__":
                 f"Ampel={p.attributes.get('Ampel')} | "
                 f"Gender={p.attributes.get('Gender')} | "
                 f"GLK={p.attributes.get('GLK_Gruppe')}"
+            )
+    issues = validate_solution(
+        result,
+        constraints,
+        num_groups=3,
+    )
+
+    print("\n--- VALIDATION: The following constraints are not satisfied ---")
+
+    if not issues:
+        print("✓ No constraint violations found")
+
+    for issue in issues:
+
+        print(f"\n{issue['constraint']}")
+        print(f"  Group: {issue['group']}")
+        print(f"  Problem: {issue['message']}")
+
+        if issue["people"]:
+            print(
+                f"  People involved: "
+                f"{', '.join(issue['people'])}"
             )
