@@ -67,7 +67,7 @@ def print_head(persons: list[Person], n: int = 5) -> None:
         row = [person.name]
         row.extend(person.attributes.get(col, "") for col in columns[1:])
         rows.append(row)
-    print(f"{n} / {len(persons)} rows and {len(columns)} columns printed")
+    print(f"{n} / {len(persons)} rows and {len(columns)} columns printed.")
 
     print(tabulate(rows, headers=columns, tablefmt="grid"))
 
@@ -92,7 +92,7 @@ def main(input_file, output_file):
     print_head(people)
     num_groups = select_num_groups()
     constraints = select_constraints(people)
-    people, _x, _cp_solver, _constraints = solver(
+    people = solver(
         people, num_groups=num_groups, constraints=constraints
     )
     write_people_to_csv(output_file, people)
