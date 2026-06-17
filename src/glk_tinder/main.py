@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Any, Iterator
 
 
-from glk_tinder.solver import solver
+from glk_tinder.solver import solver, validate_solution, print_validation
 from glk_tinder.selection import select_constraints, select_num_groups, Person
 
 
@@ -95,6 +95,8 @@ def main(input_file, output_file):
     people = solver(
         people, num_groups=num_groups, constraints=constraints
     )
+    issues = validate_solution(people, constraints, num_groups)
+    print_validation(issues)
     write_people_to_csv(output_file, people)
 
 
