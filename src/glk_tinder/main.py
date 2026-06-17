@@ -71,7 +71,7 @@ def print_head(persons: list[Person], n: int = 5) -> None:
 
 def write_people_to_csv(filename: str, people: List[Person]):
     # Define CSV columns
-    fieldnames = list(people[0].attributes.keys())
+    fieldnames = ['id'] + list(people[0].attributes.keys())
 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -81,6 +81,7 @@ def write_people_to_csv(filename: str, people: List[Person]):
         for person in sorted(people, key=lambda x: x.attributes["group"]):
 
             row = person.attributes
+            row["id"] = person.id
             writer.writerow(row)
 
 def print_groups(persons: list[Person]):
