@@ -1,50 +1,57 @@
 import argparse
 import csv
 import re
+
+
 from tabulate import tabulate
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Iterator
-
+from typing import List
 
 from glk_tinder.solver import solver, validate_solution, print_validation
-from glk_tinder.selection import select_constraints, select_num_groups, Person
+from glk_tinder.selection import (
+    select_constraints,
+    select_num_groups,
+    read_constraints_file,
+    Person,
+)
 
 
 def normalize_header(header: str) -> str:
     # Remove BOM
     header = header.replace("\ufeff", "")
 
-    # Trim whitespace
-    header = header.strip()
+    # # Trim whitespace
+    # header = header.strip()
 
-    # Lowercase
-    header = header.lower()
+    # # Lowercase
+    # header = header.lower()
 
-    # Replace spaces and hyphens with underscores
-    header = re.sub(r"[\s\-]+", "_", header)
+    # # Replace spaces and hyphens with underscores
+    # header = re.sub(r"[\s\-]+", "_", header)
 
-    # Remove any remaining non-alphanumeric/underscore chars
-    header = re.sub(r"[^a-z0-9_]", "", header)
+    # # Remove any remaining non-alphanumeric/underscore chars
+    # header = re.sub(r"[^a-z0-9_]", "", header)
 
     return header
 
 
 def read_people_from_csv(filename: str) -> List[Person]:
     people = []
-
     with open(filename, mode="r", newline="", encoding="utf-8-sig") as file:
         reader = csv.DictReader(file)
         reader.fieldnames = [normalize_header(h) for h in reader.fieldnames]
+        attributes = reader.fieldnames
         row_number = 0
         for row in reader:
             # Remaining columns become dynamic attributes
-            person = Person(id = row_number, attributes=row)
+            person = Person(id=row_number, attributes=row)
 
             people.append(person)
             row_number += 1
 
-    return people
+    return attributes, people
+
 
 def print_head(persons: list[Person], n: int = 5) -> None:
     if not persons:
@@ -68,9 +75,10 @@ def print_head(persons: list[Person], n: int = 5) -> None:
 
     print(tabulate(rows, headers=columns, tablefmt="grid"))
 
+
 def write_people_to_csv(filename: str, people: List[Person]):
     # Define CSV columns
-    fieldnames = ['id'] + list(people[0].attributes.keys())
+    fieldnames = ["id"] + list(people[0].attributes.keys())
 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -83,6 +91,7 @@ def write_people_to_csv(filename: str, people: List[Person]):
             row["id"] = person.id
             writer.writerow(row)
 
+
 def print_groups(persons: list[Person]):
     groups = {}
     for person in persons:
@@ -92,16 +101,21 @@ def print_groups(persons: list[Person]):
             groups[person.attributes["group"]] = [person.id]
     print(groups)
 
-def main(input_file, output_file):
+
+def main(input_file, output_file, constraints_file=None):
     """Main entry point."""
     # Load input file with people and data
-    people = read_people_from_csv(input_file)
+    attributes, people = read_people_from_csv(input_file)
     print_head(people)
-    num_groups = select_num_groups()
-    constraints = select_constraints(people, num_groups)
-    people = solver(
-        people, num_groups=num_groups, constraints=constraints
-    )
+
+    if constraints_file is None:
+        num_groups = select_num_groups()
+        constraints = select_constraints(people, num_groups)
+    else:
+        num_groups, constraints = read_constraints_file(
+            constraints_file, attributes, len(people)
+        )
+    people = solver(people, num_groups=num_groups, constraints=constraints)
     issues = validate_solution(people, constraints, num_groups)
     print_validation(issues)
     print_groups(people)
@@ -112,5 +126,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process input files")
     parser.add_argument("--input", required=True, help="Path to input CSV file")
     parser.add_argument("--output", required=True, help="Path to output CSV file")
+    parser.add_argument("--constraints", required=False, help="Path to constraints YAML file")
     args = parser.parse_args()
-    main(args.input, args.output)
+    main(args.input, args.output, args.constraints)

@@ -70,6 +70,7 @@ def validate_solution(people, constraints, num_groups):
 
     return all_issues
 
+
 def print_validation(issues: List[Any]):
     print("\n--- VALIDATION: The following constraints are not satisfied ---")
 
@@ -83,10 +84,7 @@ def print_validation(issues: List[Any]):
         print(f"  Problem: {issue['message']}")
 
         if issue["people"]:
-            print(
-                f"  People involved: "
-                f"{', '.join(str(issue['people']))}"
-            )
+            print(f"  People involved: " f"{', '.join(str(issue['people']))}")
 
 
 # =========================================================
